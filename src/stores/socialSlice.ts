@@ -1,35 +1,82 @@
 /**
- * Social Slice - Social media gameplay loop
- * Player posts about assets, gains/loses followers based on accuracy and engagement
+ * Social Slice - HypeWire social media gameplay loop
+ * Posts are classified once by AI, comments revealed via triggers
  */
 
 import { StateCreator } from 'zustand';
 
-export type PostType = 'shill' | 'analysis' | 'meme' | 'fud';
+// Legacy types (kept for compatibility)
+export type PostType = 'analysis' | 'shill' | 'meme' | 'fud' | 'news' | 'update' | 'question';
 export type AnalysisDirection = 'long' | 'short';
 export type AnalysisTimeframe = '1d' | '3d' | '1w';
 
+// New HypeWire types
+export type SocialCategory = 'analysis' | 'shill' | 'meme' | 'fud' | 'news' | 'update' | 'question';
+export type SocialSentiment = 'bullish' | 'bearish' | 'neutral';
+export type SocialTrigger = 'price_move' | 'viral' | 'horizon';
+
+export interface SocialComment {
+  handle: string;
+  text: string; // May contain {ASSET}, {RET%}, {DAYS} tokens
+  emoji: string | null;
+  stance?: 'pos' | 'neg' | 'neutral';
+  revealedAt?: number; // timestamp when shown
+}
+
+export interface SocialCommentPack {
+  positive: SocialComment[];
+  negative: SocialComment[];
+  neutral: SocialComment[];
+  verdict: SocialComment[];
+}
+
+export interface SocialEmoji {
+  emoji: string;
+  count: number;
+}
+
+export interface SocialMention {
+  symbol: string;
+  weight: number; // 1.0, 0.7, 0.5
+  valid: boolean;
+}
+
 export interface SocialPost {
   id: string;
-  tick: number;
-  type: PostType;
-  assetId: string;
-  content: string;
+  day: number;
+  textRaw: string;
+  textFinal: string; // After AI improvement (if used)
+  targets: string[]; // ["BTC", "DOGE"] - max 3
 
-  // Analysis-specific
-  direction?: AnalysisDirection;
-  timeframe?: AnalysisTimeframe;
-  entryPrice?: number;
+  // AI Classification (stored once at T0)
+  category: SocialCategory;
+  sentiment: SocialSentiment;
+  horizonDays: number;
 
-  // Engagement
+  // Pre-generated comment pack
+  commentPack: SocialCommentPack;
+
+  // Reactions (computed locally at T0)
   likes: number;
-  retweets: number;
-  engagement: number; // 0-1 score
+  emojis: SocialEmoji[];
+  reach: number;
 
-  // Outcome (for analysis posts)
-  resolved?: boolean;
-  correct?: boolean;
-  resolveTick?: number;
+  // Quality hints from AI
+  qualityHints: {
+    engagement: number;
+    authenticity: number;
+  };
+
+  // Lifecycle tracking
+  postedAt: number; // timestamp
+  seed: string; // For determinism
+  triggersHit: SocialTrigger[];
+  commentsShown: SocialComment[];
+  resolved: boolean;
+  alignment?: number; // -0.25 to +0.25
+
+  // Outcome tracking
+  entryPrices: Record<string, number>; // { BTC: 45000 }
 }
 
 export interface SocialStats {
@@ -40,7 +87,7 @@ export interface SocialStats {
 
   // Internal tracking
   postsToday: number;
-  lastPostTick: number;
+  lastPostDay: number;
   totalPosts: number;
   correctCalls: number;
   totalCalls: number;
@@ -53,24 +100,25 @@ export interface SocialSlice {
 
   // Actions
   initSocial: () => void;
-  createPost: (type: PostType, assetId: string, content: string, analysisData?: {
-    direction: AnalysisDirection;
-    timeframe: AnalysisTimeframe;
-  }) => void;
-  resolveAnalysisPost: (postId: string, correct: boolean) => void;
-  checkAnalysisPosts: () => void; // Auto-resolve analysis posts based on price movement
+  createPost: (post: Partial<SocialPost>) => void;
+  checkPostTriggers: () => void; // Check all posts for trigger conditions
+  revealComments: (postId: string, trigger: SocialTrigger, alignment: number) => void;
   updateDailySocial: () => void; // Called on day advance
   calculateInfluence: () => number;
+
+  // Legacy actions (for compatibility during migration)
+  resolveAnalysisPost?: (postId: string, correct: boolean) => void;
+  checkAnalysisPosts?: () => void;
 }
 
 export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
   social: {
-    followers: 100, // Start with 100 followers
-    engagement: 0.05, // 5% engagement rate
-    credibility: 0.5, // Neutral credibility
+    followers: 100,
+    engagement: 0.05,
+    credibility: 0.5,
     influence: 0,
     postsToday: 0,
-    lastPostTick: 0,
+    lastPostDay: 0,
     totalPosts: 0,
     correctCalls: 0,
     totalCalls: 0,
@@ -85,7 +133,7 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
         credibility: 0.5,
         influence: 0,
         postsToday: 0,
-        lastPostTick: 0,
+        lastPostDay: 0,
         totalPosts: 0,
         correctCalls: 0,
         totalCalls: 0,
@@ -94,60 +142,48 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
     });
   },
 
-  createPost: (type, assetId, content, analysisData) => {
+  createPost: (postData) => {
     const state = get();
-    const tick = (state as any).tick || 0;
+    const day = (state as any).day || 0;
     const social = state.social;
 
-    // Calculate base engagement for this post
-    const baseEngagement = Math.random() * 0.1 + 0.02; // 2-12%
-
-    // Fatigue from overposting
-    const postsToday = tick === social.lastPostTick ? social.postsToday + 1 : 1;
-    const fatigueMultiplier = postsToday === 1 ? 1.0 :
-                             postsToday === 2 ? 0.6 :
-                             postsToday === 3 ? 0.3 : 0.15;
-
-    const postEngagement = baseEngagement * fatigueMultiplier;
-
-    // Calculate follower delta
-    const typeBase = type === 'shill' ? 50 :
-                    type === 'analysis' ? 80 :
-                    type === 'meme' ? 120 :
-                    type === 'fud' ? 40 : 50;
-
-    const viralChance = 0.002 * (social.engagement * 10) * (1 / Math.pow(postsToday, 1.5));
-    const isViral = Math.random() < viralChance;
-    const viralSpike = isViral ? (Math.random() * 77000 + 3000) * (0.5 + social.credibility) : 0;
-
-    const followerDelta = Math.floor(
-      typeBase * social.engagement * (0.6 + 0.8 * social.credibility) * fatigueMultiplier + viralSpike
-    );
-
-    // Create post
+    // Create post with defaults
     const post: SocialPost = {
       id: `post-${Date.now()}-${Math.random()}`,
-      tick,
-      type,
-      assetId,
-      content,
-      likes: Math.floor(social.followers * postEngagement * 0.3),
-      retweets: Math.floor(social.followers * postEngagement * 0.1),
-      engagement: postEngagement,
-      resolved: type !== 'analysis',
+      day,
+      textRaw: postData.textRaw || '',
+      textFinal: postData.textFinal || postData.textRaw || '',
+      targets: postData.targets || [],
+      category: postData.category || 'shill',
+      sentiment: postData.sentiment || 'neutral',
+      horizonDays: postData.horizonDays || 3,
+      commentPack: postData.commentPack || {
+        positive: [],
+        negative: [],
+        neutral: [],
+        verdict: [],
+      },
+      likes: postData.likes || 0,
+      emojis: postData.emojis || [],
+      reach: postData.reach || 0,
+      qualityHints: postData.qualityHints || { engagement: 0.5, authenticity: 0.5 },
+      postedAt: Date.now(),
+      seed: postData.seed || `${Date.now()}-${Math.random()}`,
+      triggersHit: [],
+      commentsShown: [],
+      resolved: false,
+      entryPrices: postData.entryPrices || {},
+      ...postData,
     };
 
-    if (analysisData) {
-      const assets = (state as any).assets || {};
-      const asset = assets[assetId];
-      post.direction = analysisData.direction;
-      post.timeframe = analysisData.timeframe;
-      post.entryPrice = asset?.price || 0;
-    }
+    // Calculate follower delta
+    const baseFollowerGain = Math.floor(
+      social.followers * post.qualityHints.engagement * 0.01 * (0.5 + social.credibility)
+    );
 
     // Update social stats
-    const newFollowers = Math.max(0, social.followers + followerDelta);
-    const newEngagement = (social.engagement * 0.7) + (postEngagement * 0.3); // Moving average
+    const newFollowers = Math.max(0, social.followers + baseFollowerGain);
+    const newEngagement = social.engagement * 0.7 + post.qualityHints.engagement * 0.3;
 
     set({
       posts: [post, ...state.posts],
@@ -155,8 +191,8 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
         ...social,
         followers: newFollowers,
         engagement: newEngagement,
-        postsToday,
-        lastPostTick: tick,
+        postsToday: day === social.lastPostDay ? social.postsToday + 1 : 1,
+        lastPostDay: day,
         totalPosts: social.totalPosts + 1,
       },
     });
@@ -165,105 +201,116 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
     const pushEvent = (state as any).pushEvent;
     if (pushEvent) {
       pushEvent({
-        tick,
+        tick: day,
         type: 'info',
-        message: isViral
-          ? `🚀 Viral post! +${followerDelta.toLocaleString()} followers`
-          : `Posted ${type} on @${assetId} (+${followerDelta} followers)`,
+        message: `Posted on HypeWire (+${baseFollowerGain} followers)`,
       });
     }
   },
 
-  resolveAnalysisPost: (postId, correct) => {
+  checkPostTriggers: () => {
     const state = get();
-    const post = state.posts.find(p => p.id === postId);
-    if (!post || post.type !== 'analysis' || post.resolved) return;
-
-    const social = state.social;
-    const tick = (state as any).tick || 0;
-
-    // Engagement weight (high engagement = higher credibility impact)
-    const engagementWeight = post.engagement > 0.08 ? 1.5 : 1.0;
-
-    // Timeframe weight (longer = higher impact)
-    const timeframeWeight = post.timeframe === '1w' ? 1.2 :
-                           post.timeframe === '3d' ? 1.0 : 0.8;
-
-    const outcome = correct ? 1 : -1;
-    const k = post.engagement > 0.08 ? 0.12 : 0.08;
-    const impact = k * outcome * engagementWeight * timeframeWeight;
-
-    const newCredibility = Math.max(0.3, Math.min(0.9, social.credibility + impact));
-
-    // Update post
-    const updatedPosts = state.posts.map(p =>
-      p.id === postId
-        ? { ...p, resolved: true, correct, resolveTick: tick }
-        : p
-    );
-
-    // Update stats
-    set({
-      posts: updatedPosts,
-      social: {
-        ...social,
-        credibility: newCredibility,
-        correctCalls: correct ? social.correctCalls + 1 : social.correctCalls,
-        totalCalls: social.totalCalls + 1,
-      },
-    });
-
-    // Push event
-    const pushEvent = (state as any).pushEvent;
-    if (pushEvent) {
-      pushEvent({
-        tick,
-        type: correct ? 'success' : 'warning',
-        message: correct
-          ? `✅ Correct call! Credibility +${(impact * 100).toFixed(1)}%`
-          : `❌ Wrong call. Credibility ${impact < 0 ? impact.toFixed(2) : ''}`,
-      });
-    }
-  },
-
-  checkAnalysisPosts: () => {
-    const state = get();
-    const tick = (state as any).tick || 0;
     const assets = (state as any).assets || {};
+    const social = state.social;
+    const posts = state.posts;
 
-    // Find unresolved analysis posts
-    const unresolvedPosts = state.posts.filter(
-      p => p.type === 'analysis' && !p.resolved
-    );
+    posts.forEach((post) => {
+      if (post.resolved) return;
 
-    unresolvedPosts.forEach(post => {
-      if (!post.timeframe || !post.direction || !post.entryPrice) return;
+      const elapsedMs = Date.now() - post.postedAt;
+      const elapsedDays = elapsedMs / (30 * 60 * 1000); // 30min = 1 day
 
-      // Calculate days for timeframe
-      const timeframeDays = post.timeframe === '1d' ? 1 :
-                           post.timeframe === '3d' ? 3 :
-                           post.timeframe === '1w' ? 7 : 3;
+      // Trigger A: Price move (5% threshold)
+      if (!post.triggersHit.includes('price_move')) {
+        for (const target of post.targets) {
+          const asset = assets[target];
+          if (!asset || !post.entryPrices[target]) continue;
 
-      // Check if timeframe has expired
-      const ticksElapsed = tick - post.tick;
-      if (ticksElapsed >= timeframeDays) {
-        // Get current price
-        const asset = assets[post.assetId];
-        if (!asset) return;
-
-        const currentPrice = asset.price;
-        const priceChange = ((currentPrice - post.entryPrice) / post.entryPrice) * 100;
-
-        // Determine if call was correct
-        // Threshold: >5% move in predicted direction = correct
-        const threshold = 5;
-        const correct = post.direction === 'long'
-          ? priceChange >= threshold
-          : priceChange <= -threshold;
-
-        // Auto-resolve
-        get().resolveAnalysisPost(post.id, correct);
+          const ret = (asset.price - post.entryPrices[target]) / post.entryPrices[target];
+          if (Math.abs(ret) >= 0.05) {
+            const alignment = calculateAlignment(post, assets);
+            get().revealComments(post.id, 'price_move', alignment);
+            break;
+          }
+        }
       }
+
+      // Trigger B: Horizon reached
+      if (
+        elapsedDays >= post.horizonDays &&
+        !post.triggersHit.includes('horizon')
+      ) {
+        const alignment = calculateAlignment(post, assets);
+        get().revealComments(post.id, 'horizon', alignment);
+
+        // Update credibility based on alignment
+        updateCredibility(state, post, alignment);
+
+        // Mark resolved
+        set((s) => ({
+          posts: s.posts.map((p) =>
+            p.id === post.id ? { ...p, resolved: true, alignment } : p
+          ),
+        }));
+      }
+
+      // Trigger C: Viral (dynamic threshold based on followers)
+      if (!post.triggersHit.includes('viral')) {
+        const viralThreshold = Math.max(100, social.followers * 0.05);
+        if (post.likes > viralThreshold) {
+          const alignment = calculateAlignment(post, assets);
+          get().revealComments(post.id, 'viral', alignment);
+        }
+      }
+    });
+  },
+
+  revealComments: (postId, trigger, alignment) => {
+    set((state) => {
+      const post = state.posts.find((p) => p.id === postId);
+      if (!post) return state;
+
+      // Determine comment budget
+      const budget =
+        trigger === 'price_move' ? 2 : trigger === 'viral' ? 3 : trigger === 'horizon' ? 2 : 1;
+
+      // Pick comments based on alignment
+      let pool: SocialComment[];
+      if (trigger === 'horizon') {
+        pool = post.commentPack.verdict;
+      } else {
+        pool =
+          alignment > 0.05
+            ? post.commentPack.positive
+            : alignment < -0.05
+            ? post.commentPack.negative
+            : post.commentPack.neutral;
+      }
+
+      // Take comments from pool
+      const newComments = pool.slice(0, budget).map((c) => {
+        const elapsedDays = (Date.now() - post.postedAt) / (30 * 60 * 1000);
+        return {
+          ...c,
+          text: c.text
+            .replace(/{ASSET}/g, post.targets[0] || 'COIN')
+            .replace(/{RET%}/g, (alignment * 100).toFixed(1))
+            .replace(/{DAYS}/g, Math.floor(elapsedDays).toString()),
+          revealedAt: Date.now(),
+        };
+      });
+
+      return {
+        posts: state.posts.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                commentsShown: [...p.commentsShown, ...newComments],
+                triggersHit: [...p.triggersHit, trigger],
+              }
+            : p
+        ),
+      };
     });
   },
 
@@ -271,7 +318,7 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
     set((state) => ({
       social: {
         ...state.social,
-        postsToday: 0, // Reset daily post count
+        postsToday: 0,
       },
     }));
   },
@@ -279,8 +326,76 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
   calculateInfluence: () => {
     const state = get();
     const { followers, engagement, credibility } = state.social;
-
     const influence = Math.log10(followers + 1) * engagement * (0.5 + credibility);
     return Math.max(0, Math.min(10, influence));
   },
 });
+
+// Helper: Calculate alignment for a post
+function calculateAlignment(post: SocialPost, assets: Record<string, any>): number {
+  let weightedReturn = 0;
+  let totalWeight = 0;
+
+  const weights = [1.0, 0.7, 0.5];
+
+  post.targets.forEach((target, idx) => {
+    const asset = assets[target];
+    if (!asset || !post.entryPrices[target]) return;
+
+    const ret = (asset.price - post.entryPrices[target]) / post.entryPrices[target];
+    const weight = weights[idx] || 0.5;
+
+    weightedReturn += ret * weight;
+    totalWeight += weight;
+  });
+
+  if (totalWeight === 0) return 0;
+
+  const avgReturn = weightedReturn / totalWeight;
+
+  // Apply sentiment
+  const sentimentMultiplier =
+    post.sentiment === 'bullish' ? 1 : post.sentiment === 'bearish' ? -1 : 0.5 * Math.sign(avgReturn);
+
+  const alignment = sentimentMultiplier * avgReturn;
+
+  // Clamp to [-0.25, +0.25]
+  return Math.max(-0.25, Math.min(0.25, alignment));
+}
+
+// Helper: Update credibility based on alignment
+function updateCredibility(state: any, post: SocialPost, alignment: number) {
+  const social = state.social;
+  const engagementWeight = post.qualityHints.engagement > 0.6 ? 1.25 : 1.0;
+
+  const horizonWeight =
+    post.horizonDays >= 7 ? 1.2 : post.horizonDays >= 3 ? 1.0 : 0.8;
+
+  const k = post.qualityHints.engagement > 0.6 ? 0.12 : 0.08;
+  const impact = k * alignment * engagementWeight * horizonWeight;
+
+  const newCredibility = Math.max(0.3, Math.min(0.9, social.credibility + impact));
+
+  const correct = alignment > 0.05;
+
+  state.set({
+    social: {
+      ...social,
+      credibility: newCredibility,
+      correctCalls: correct ? social.correctCalls + 1 : social.correctCalls,
+      totalCalls: social.totalCalls + 1,
+    },
+  });
+
+  // Push event
+  const pushEvent = state.pushEvent;
+  if (pushEvent) {
+    pushEvent({
+      tick: post.day,
+      type: correct ? 'success' : 'warning',
+      message: correct
+        ? `✅ Good call! Credibility +${(impact * 100).toFixed(1)}%`
+        : `❌ Missed. Credibility ${impact < 0 ? (impact * 100).toFixed(1) : ''}%`,
+    });
+  }
+}

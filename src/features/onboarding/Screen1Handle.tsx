@@ -101,15 +101,15 @@ export default function Screen1Handle() {
               error={error}
               leftSection="@"
               size="md"
-              styles={{
+              styles={(theme) => ({
                 label: {
-                  color: 'var(--mantine-color-dimmed)',
+                  color: theme.colors.gray[6],
                 },
                 input: {
                   fontFamily: 'monospace',
                   fontSize: '1.1rem',
                 },
-              }}
+              })}
             />
 
             <Group gap="xs">
@@ -131,14 +131,14 @@ export default function Screen1Handle() {
             value={alias}
             onChange={(e) => setAlias(e.currentTarget.value)}
             size="md"
-            styles={{
+            styles={(theme) => ({
               label: {
-                color: 'var(--mantine-color-dimmed)',
+                color: theme.colors.gray[6],
               },
               input: {
                 fontFamily: 'monospace',
               },
-            }}
+            })}
           />
 
           {/* Title Select */}
@@ -149,11 +149,11 @@ export default function Screen1Handle() {
             data={TITLES}
             size="md"
             comboboxProps={{ transitionProps: { transition: 'fade', duration: 200 } }}
-            styles={{
+            styles={(theme) => ({
               label: {
-                color: 'var(--mantine-color-dimmed)',
+                color: theme.colors.gray[6],
               },
-            }}
+            })}
           />
 
           {/* Flavor Toggles */}

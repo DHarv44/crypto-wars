@@ -1,0 +1,137 @@
+[
+  {
+    "id": "bull_call",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} to the moon 🚀 {TAG}",
+    "impact": "pos",
+    "severity": 0.08,
+    "influencers": ["CryptoWhale", "DegenDave", "BlockBro", "AltcoinApe", "MoonBoi"],
+    "tags": ["WAGMI", "send it", "early af", "lfg", "bullish"]
+  },
+  {
+    "id": "bear_fud",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} looks toppy. Careful. {TAG}",
+    "impact": "neg",
+    "severity": -0.06,
+    "influencers": ["OnChainOwl", "AuditNerd", "BearWhale", "CryptoSkeptic"],
+    "tags": ["DYOR", "overheated", "liquidity thin", "exit pump", "careful"]
+  },
+  {
+    "id": "mega_bull_call",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} price target: $1M by EOY. Not financial advice but I'm all in. {TAG}",
+    "impact": "pos",
+    "severity": 0.10,
+    "influencers": ["CryptoWhale", "MegaBull", "DiamondHands", "HODLKing"],
+    "tags": ["NFA", "conviction play", "generational wealth", "buy now cry later"]
+  },
+  {
+    "id": "celebrity_pump",
+    "author": "@{INFLUENCER}",
+    "text": "Just bought a ton of {ASSET}. This is the future 🔥",
+    "impact": "pos",
+    "severity": 0.35,
+    "influencers": ["TechBillionaire", "PopStar", "AthleteKing", "CelebInfluencer"],
+    "tags": ["future of money", "all in", "to the moon", "lfg"]
+  },
+  {
+    "id": "viral_meme",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} holders right now: 📈📈📈 {TAG}",
+    "impact": "pos",
+    "severity": 0.28,
+    "influencers": ["MemeLord", "ViralCrypto", "ShitpostKing", "DegenMemes"],
+    "tags": ["WAGMI", "cope and seethe bears", "gg ez", "ngmi if you're not in"]
+  },
+  {
+    "id": "to_the_moon",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} breaking out! Next stop: moon 🌙 {TAG}",
+    "impact": "pos",
+    "severity": 0.22,
+    "influencers": ["MoonBoi", "ChartWizard", "TAMaster", "PumpChaser"],
+    "tags": ["breakout confirmed", "buy the dip", "last chance", "trust the chart"]
+  },
+  {
+    "id": "technical_bull",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} golden cross forming. Textbook bullish setup. {TAG}",
+    "impact": "pos",
+    "severity": 0.12,
+    "influencers": ["ChartMaster", "TAGuru", "TechnicalTrader", "CryptoCharts"],
+    "tags": ["golden cross", "bullish divergence", "RSI oversold", "breakout imminent"]
+  },
+  {
+    "id": "technical_bear",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} death cross confirmed. Not looking good. {TAG}",
+    "impact": "neg",
+    "severity": -0.10,
+    "influencers": ["ChartBear", "TASkeptic", "TechnicalAnalyst"],
+    "tags": ["death cross", "bearish divergence", "overbought", "correction incoming"]
+  },
+  {
+    "id": "flippening_talk",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} flippening incoming. The fundamentals are undeniable. {TAG}",
+    "impact": "pos",
+    "severity": 0.08,
+    "influencers": ["EthMaxi", "SmartContractGuy", "DeFiLord", "Web3Prophet"],
+    "tags": ["flippening", "fundamentals", "undervalued", "long term play"]
+  },
+  {
+    "id": "exit_liquidity",
+    "author": "@{INFLUENCER}",
+    "text": "Everyone shilling {ASSET} now. Probably exit liquidity. {TAG}",
+    "impact": "neg",
+    "severity": -0.12,
+    "influencers": ["SmartMoney", "ContrarianTrader", "ExitScout", "BearWhale"],
+    "tags": ["exit liquidity", "top signal", "retail fomo", "be careful"]
+  },
+  {
+    "id": "comeback_hype",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} making a comeback! Don't say I didn't warn you. {TAG}",
+    "impact": "pos",
+    "severity": 0.12,
+    "influencers": ["ComebackKing", "SecondChance", "BottomBuyer", "ValueHunter"],
+    "tags": ["comeback szn", "redemption arc", "told you so", "patience pays"]
+  },
+  {
+    "id": "fundamentals_strong",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} fundamentals stronger than ever. Price doesn't reflect value yet. {TAG}",
+    "impact": "pos",
+    "severity": 0.09,
+    "influencers": ["FundamentalTrader", "ValueInvestor", "ResearchGuy", "OnChainAnalyst"],
+    "tags": ["fundamentals", "undervalued", "accumulation phase", "smart money"]
+  },
+  {
+    "id": "whale_spotted",
+    "author": "@{INFLUENCER}",
+    "text": "Massive {ASSET} whale just moved 50M to unknown wallet. Something brewing 👀 {TAG}",
+    "impact": "pos",
+    "severity": 0.07,
+    "influencers": ["WhaleWatcher", "OnChainDetective", "FlowTracker"],
+    "tags": ["whale alert", "something's up", "follow the smart money", "interesting"]
+  },
+  {
+    "id": "rugpull_warning",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} devs dumping? Seeing suspicious activity. {TAG}",
+    "impact": "neg",
+    "severity": -0.20,
+    "influencers": ["RugDetective", "ScamBuster", "SafetyFirst", "DueDiligence"],
+    "tags": ["rug incoming?", "devs sus", "red flags", "get out while you can"]
+  },
+  {
+    "id": "community_hype",
+    "author": "@{INFLUENCER}",
+    "text": "{ASSET} community is strongest in crypto. Unstoppable. {TAG}",
+    "impact": "pos",
+    "severity": 0.06,
+    "influencers": ["CommunityBuilder", "DAO_Delegate", "Governance_Pro", "TribeLeader"],
+    "tags": ["community driven", "diamond hands", "together strong", "decentralized"]
+  }
+]

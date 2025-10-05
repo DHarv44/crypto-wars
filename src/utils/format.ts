@@ -1,0 +1,44 @@
+/**
+ * Format utilities for numbers, currencies, and dates
+ */
+
+export function formatUSD(value: number, decimals = 2): string {
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
+export function formatNumber(value: number, decimals = 2): string {
+  return value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+export function formatPercent(value: number, decimals = 1): string {
+  return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
+}
+
+export function formatCompact(value: number): string {
+  if (value >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  } else if (value >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+  return formatUSD(value);
+}
+
+export function formatTick(tick: number): string {
+  return `Day ${tick}`;
+}
+
+export function clampStat(value: number, min = 0, max = 100): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+export function getChangeColor(change: number): string {
+  if (change > 0) return 'darkGreen';
+  if (change < 0) return 'darkRed';
+  return 'gray';
+}
+
+export function getRiskColor(risk: number): string {
+  if (risk < 0.1) return 'green';
+  if (risk < 0.3) return 'yellow';
+  return 'red';
+}

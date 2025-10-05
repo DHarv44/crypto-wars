@@ -1,0 +1,117 @@
+[
+  {
+    "id": "reg_crackdown",
+    "headline": "{ASSET} faces regulatory scrutiny from {AGENCY}",
+    "impact": "neg",
+    "severity": -0.15,
+    "agencies": ["SEC", "CFTC", "DOJ", "ESMA", "FCA", "FinCEN"],
+    "sources": ["CryptoNews", "Bloomberg Crypto", "CoinDesk", "The Block"]
+  },
+  {
+    "id": "partnership",
+    "headline": "{ASSET} announces major partnership with {COMPANY}",
+    "impact": "pos",
+    "severity": 0.20,
+    "companies": ["Stripe", "Amazon", "Coinbase", "TSMC", "Visa", "Mastercard", "PayPal", "Square"],
+    "sources": ["CryptoNews", "TechCrunch", "CoinTelegraph"]
+  },
+  {
+    "id": "listing",
+    "headline": "Major exchange lists perpetuals for {ASSET}",
+    "impact": "pos",
+    "severity": 0.12,
+    "sources": ["Binance News", "Coinbase Blog", "Kraken Announcement"]
+  },
+  {
+    "id": "etf_approval_rumor",
+    "headline": "{ASSET} ETF approval rumors circulate on Wall Street",
+    "impact": "pos",
+    "severity": 0.18,
+    "sources": ["Bloomberg", "Reuters Crypto", "WSJ"]
+  },
+  {
+    "id": "whale_accumulation",
+    "headline": "On-chain data shows massive {ASSET} whale accumulation",
+    "impact": "pos",
+    "severity": 0.08,
+    "sources": ["Glassnode", "CryptoQuant", "Santiment"]
+  },
+  {
+    "id": "whale_dump",
+    "headline": "Major {ASSET} whale moves coins to exchange, sell-off expected",
+    "impact": "neg",
+    "severity": -0.18,
+    "sources": ["Whale Alert", "CryptoQuant", "Glassnode"]
+  },
+  {
+    "id": "hack_exploit",
+    "headline": "{ASSET} protocol suffers $50M exploit, funds drained",
+    "impact": "neg",
+    "severity": -0.25,
+    "sources": ["PeckShield", "SlowMist", "CertiK Alert"]
+  },
+  {
+    "id": "upgrade_success",
+    "headline": "{ASSET} network upgrade completes successfully, no issues reported",
+    "impact": "pos",
+    "severity": 0.10,
+    "sources": ["Official Blog", "CoinDesk", "The Block"]
+  },
+  {
+    "id": "merge_success",
+    "headline": "{ASSET} completes historic merge, transitions to proof-of-stake",
+    "impact": "pos",
+    "severity": 0.20,
+    "sources": ["Official Blog", "Ethereum Foundation", "CoinDesk"]
+  },
+  {
+    "id": "halving_announce",
+    "headline": "{ASSET} halving event approaches, miners prepare for reduced rewards",
+    "impact": "pos",
+    "severity": 0.22,
+    "sources": ["Bitcoin Magazine", "CoinDesk", "CryptoNews"]
+  },
+  {
+    "id": "payment_acceptance",
+    "headline": "Major retailer {COMPANY} announces {ASSET} payment acceptance",
+    "impact": "pos",
+    "severity": 0.15,
+    "companies": ["Tesla", "Newegg", "AT&T", "Whole Foods", "Starbucks"],
+    "sources": ["Company Press Release", "TechCrunch", "CoinDesk"]
+  },
+  {
+    "id": "delisting_warning",
+    "headline": "Exchange threatens {ASSET} delisting due to compliance concerns",
+    "impact": "neg",
+    "severity": -0.12,
+    "sources": ["Exchange Blog", "CryptoNews", "The Block"]
+  },
+  {
+    "id": "institutional_buy",
+    "headline": "Institutional investors pour billions into {ASSET} funds",
+    "impact": "pos",
+    "severity": 0.16,
+    "sources": ["Bloomberg", "Grayscale", "CoinShares Report"]
+  },
+  {
+    "id": "layer2_boom",
+    "headline": "{ASSET} layer-2 solutions see explosive growth in TVL",
+    "impact": "pos",
+    "severity": 0.12,
+    "sources": ["L2Beat", "DeFi Llama", "The Block"]
+  },
+  {
+    "id": "enterprise_adoption",
+    "headline": "Fortune 500 companies adopt {ASSET} for enterprise blockchain",
+    "impact": "pos",
+    "severity": 0.15,
+    "sources": ["Enterprise Ethereum Alliance", "Forbes", "Bloomberg"]
+  },
+  {
+    "id": "futures_launch",
+    "headline": "CME launches {ASSET} futures, institutional access expands",
+    "impact": "pos",
+    "severity": 0.10,
+    "sources": ["CME Group", "Bloomberg", "Reuters"]
+  }
+]

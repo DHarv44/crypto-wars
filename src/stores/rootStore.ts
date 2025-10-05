@@ -109,8 +109,8 @@ export const useStore = create<RootStore>((set, get, store) => ({
     // Update social stats (reset daily counter)
     state.updateDailySocial();
 
-    // Check and resolve analysis posts
-    state.checkAnalysisPosts();
+    // Check post triggers (price moves, viral, horizon)
+    state.checkPostTriggers();
 
     // Check for unlocks
     state.checkUnlocks();

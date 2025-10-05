@@ -102,6 +102,9 @@ export default function Screen1Handle() {
               leftSection="@"
               size="md"
               styles={{
+                label: {
+                  color: 'var(--mantine-color-dimmed)',
+                },
                 input: {
                   fontFamily: 'monospace',
                   fontSize: '1.1rem',
@@ -129,6 +132,9 @@ export default function Screen1Handle() {
             onChange={(e) => setAlias(e.currentTarget.value)}
             size="md"
             styles={{
+              label: {
+                color: 'var(--mantine-color-dimmed)',
+              },
               input: {
                 fontFamily: 'monospace',
               },
@@ -143,11 +149,16 @@ export default function Screen1Handle() {
             data={TITLES}
             size="md"
             comboboxProps={{ transitionProps: { transition: 'fade', duration: 200 } }}
+            styles={{
+              label: {
+                color: 'var(--mantine-color-dimmed)',
+              },
+            }}
           />
 
           {/* Flavor Toggles */}
           <Box>
-            <Text size="sm" fw={500} mb="xs">
+            <Text size="sm" fw={500} mb="xs" c="dimmed">
               Starting Vibe
             </Text>
             <Chip.Group value={toggle || ''} onChange={(val) => setToggle((val as any) || null)}>

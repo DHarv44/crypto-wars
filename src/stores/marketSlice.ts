@@ -44,7 +44,14 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
         price: seed.basePrice,
         flagged: false,
         rugged: false,
-        priceHistory: [],
+        volume: 0.5, // Default volume (mid-range trading frequency)
+        priceHistory: {
+          today: [],
+          d5: [],
+          m1: [],
+          y1: [],
+          y5: [],
+        },
       };
       assets[asset.id] = asset;
       list.push(asset.id);

@@ -30,7 +30,12 @@ export interface PortfolioEntry {
   assetId: string;
   symbol: string;
   units: number;
+  currentPrice: number;
+  avgCost: number;
   valueUSD: number;
+  costBasisUSD: number;
+  unrealizedPnL: number;
+  unrealizedPnLPct: number;
   pctOfTotal: number;
 }
 
@@ -193,12 +198,28 @@ export const createPlayerSlice: StateCreator<PlayerSlice> = (set, get) => ({
 
     for (const [assetId, units] of Object.entries(state.holdings)) {
       if (units > 0 && assets[assetId]) {
-        const value = units * assets[assetId].price;
+        const currentPrice = assets[assetId].price;
+        const value = units * currentPrice;
+
+        // Get cost basis from state
+        const costBasis = state.costBasis[assetId];
+        const avgCost = costBasis ? costBasis.avgPrice : currentPrice;
+        const costBasisUSD = costBasis ? costBasis.totalCostUSD : value;
+
+        // Calculate unrealized P&L
+        const unrealizedPnL = value - costBasisUSD;
+        const unrealizedPnLPct = costBasisUSD > 0 ? (unrealizedPnL / costBasisUSD) * 100 : 0;
+
         entries.push({
           assetId,
           symbol: assets[assetId].symbol,
           units,
+          currentPrice,
+          avgCost,
           valueUSD: value,
+          costBasisUSD,
+          unrealizedPnL,
+          unrealizedPnLPct,
           pctOfTotal: 0, // Will calculate after
         });
         totalValue += value;

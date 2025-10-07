@@ -9,7 +9,7 @@ import { Loader, Center } from '@mantine/core';
 import { initCache } from './data/storageCache';
 
 function App() {
-  const { hasCompletedOnboarding, completeOnboarding, loadGame } = useStore();
+  const { hasCompletedOnboarding, completeOnboarding, loadGame, processTick, saveGame } = useStore();
   const [isReady, setIsReady] = useState(false);
 
   // Initialize app on mount
@@ -40,6 +40,28 @@ function App() {
 
     initialize();
   }, []);
+
+  // Run processTick every second when game is active
+  useEffect(() => {
+    if (!isReady || !hasCompletedOnboarding) return;
+
+    const interval = setInterval(() => {
+      processTick();
+    }, 1000); // Every 1 second = 1 in-game tick
+
+    return () => clearInterval(interval);
+  }, [isReady, hasCompletedOnboarding, processTick]);
+
+  // Auto-save every 5 seconds (with dirty flag check)
+  useEffect(() => {
+    if (!isReady || !hasCompletedOnboarding) return;
+
+    const interval = setInterval(async () => {
+      await saveGame();
+    }, 5000); // Every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isReady, hasCompletedOnboarding, saveGame]);
 
   // Show loading until ready
   if (!isReady) {

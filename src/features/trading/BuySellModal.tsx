@@ -2,7 +2,7 @@ import { Modal, Stack, Text, NumberInput, Button, Group, Alert } from '@mantine/
 import { useState, useMemo } from 'react';
 import { useStore } from '../../stores/rootStore';
 import { executeTrade } from '../../engine/api';
-import { formatUSD } from '../../utils/format';
+import { formatUSD, formatUnits, UNIT_PRECISION, UNIT_STEP } from '../../utils/format';
 import { notifications } from '@mantine/notifications';
 
 export default function BuySellModal() {
@@ -18,6 +18,8 @@ export default function BuySellModal() {
     applyTickUpdates,
     recordTrade,
     day,
+    getTimeUntilNextDay,
+    realTimeDayDuration,
     saveGame,
     marketOpen,
   } = useStore();
@@ -83,9 +85,16 @@ export default function BuySellModal() {
       }
       applyUpdates(result.playerUpdates);
 
+      // Calculate current tick based on elapsed time in the day
+      const ticksPerDay = 1800;
+      const remaining = getTimeUntilNextDay();
+      const elapsed = realTimeDayDuration - remaining;
+      const currentTickInDay = Math.floor((elapsed / realTimeDayDuration) * ticksPerDay);
+      const absoluteTick = (day - 1) * ticksPerDay + currentTickInDay;
+
       // Record trade for P&L tracking
       recordTrade({
-        tick: day,
+        tick: absoluteTick,
         type: tradeType === 'buy' ? 'buy' : 'sell',
         assetId: asset.id,
         assetSymbol: asset.symbol,
@@ -162,7 +171,7 @@ export default function BuySellModal() {
               Your Holdings
             </Text>
             <Text size="lg" fw={700} ff="monospace">
-              {currentHoldings.toFixed(4)} {asset.symbol}
+              {formatUnits(currentHoldings)} {asset.symbol}
             </Text>
           </div>
         </Group>
@@ -175,8 +184,8 @@ export default function BuySellModal() {
           onChange={setAmount}
           min={0}
           max={tradeType === 'buy' ? cashUSD : currentHoldings}
-          step={tradeType === 'buy' ? 100 : 0.1}
-          decimalScale={tradeType === 'buy' ? 2 : 4}
+          step={tradeType === 'buy' ? 100 : UNIT_STEP}
+          decimalScale={tradeType === 'buy' ? 2 : UNIT_PRECISION}
           leftSection={tradeType === 'buy' ? '$' : undefined}
           size="lg"
           disabled={!marketOpen}
@@ -211,22 +220,36 @@ export default function BuySellModal() {
             {tradeType === 'buy' ? 'Available Cash:' : 'Available Units:'}
           </Text>
           <Text size="sm" fw={700} ff="monospace">
-            {tradeType === 'buy' ? formatUSD(cashUSD, 2) : `${currentHoldings.toFixed(4)} ${asset.symbol}`}
+            {tradeType === 'buy' ? formatUSD(cashUSD, 2) : `${formatUnits(currentHoldings)} ${asset.symbol}`}
           </Text>
         </Group>
 
         {/* Actions */}
-        <Group justify="flex-end" mt="md">
-          <Button variant="light" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            color={tradeType === 'buy' ? 'green' : 'red'}
-            onClick={handleExecute}
-            disabled={!marketOpen || !quote || !quote.canAfford || !amount || amount === 0}
-          >
-            {tradeType === 'buy' ? 'Buy' : 'Sell'}
-          </Button>
+        <Group justify="space-between" mt="md">
+          <div>
+            {tradeType === 'sell' && currentHoldings > 0 && (
+              <Button
+                variant="outline"
+                color="red"
+                onClick={() => setAmount(currentHoldings)}
+                disabled={!marketOpen}
+              >
+                Sell All
+              </Button>
+            )}
+          </div>
+          <Group>
+            <Button variant="light" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              color={tradeType === 'buy' ? 'green' : 'red'}
+              onClick={handleExecute}
+              disabled={!marketOpen || !quote || !quote.canAfford || !amount || amount === 0}
+            >
+              {tradeType === 'buy' ? 'Buy' : 'Sell'}
+            </Button>
+          </Group>
         </Group>
       </Stack>
     </Modal>

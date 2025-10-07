@@ -16,9 +16,10 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
   const chartRef = useRef<any>(null);
   const seriesRef = useRef<any>(null);
 
-  const [resolution, setResolution] = useState<ChartResolution>('5D');
+  const [resolution, setResolution] = useState<ChartResolution>('1D');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chartLabels, setChartLabels] = useState<string[]>([]);
 
   // Initialize chart
   useEffect(() => {
@@ -38,7 +39,12 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
         height: 400,
         timeScale: {
           borderColor: 'rgba(0, 255, 0, 0.3)',
-          timeVisible: true,
+          timeVisible: false,
+          tickMarkFormatter: (time: any) => {
+            // Use our stored labels array
+            const index = Math.floor(time);
+            return chartLabels[index] || `${index}`;
+          },
         },
         rightPriceScale: {
           borderColor: 'rgba(0, 255, 0, 0.3)',
@@ -88,40 +94,104 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
       setLoading(true);
       try {
         const asset = assets[assetId];
-        if (!asset || !asset.priceHistory || asset.priceHistory.length === 0) {
+        if (!asset || !asset.priceHistory) {
           console.error(`[AssetChart] No price history found for assetId=${assetId}`);
           setError('No price data available');
           setLoading(false);
           return;
         }
 
-        console.log(`[AssetChart] Loading chart data: assetId=${assetId}, resolution=${resolution}, priceHistory length=${asset.priceHistory.length}`);
+        console.log(`[AssetChart] Loading chart data: assetId=${assetId}, resolution=${resolution}`);
 
-        // Filter candles by resolution (day range)
-        let daysToShow = 365;
+        // Select correct resolution array from priceHistory
+        let candles: any[] = [];
         switch (resolution) {
-          case '5D': daysToShow = 5; break;
-          case '1M': daysToShow = 30; break;
-          case '1Y': daysToShow = 365; break;
-          case '5Y': daysToShow = 365 * 5; break;
+          case '1D':
+            candles = asset.priceHistory?.today || [];
+            break;
+          case '5D':
+            candles = asset.priceHistory?.d5 || [];
+            break;
+          case '1M':
+            candles = asset.priceHistory?.m1 || [];
+            break;
+          case '1Y':
+            candles = asset.priceHistory?.y1 || [];
+            break;
+          case '5Y':
+            candles = asset.priceHistory?.y5 || [];
+            break;
+          default:
+            candles = asset.priceHistory?.today || [];
         }
 
-        const fromDay = day - daysToShow;
-        const filteredCandles = asset.priceHistory.filter(candle => candle.day >= fromDay && candle.day <= day);
+        console.log(`[AssetChart] Found ${candles.length} candles for ${resolution}`);
 
-        console.log(`[AssetChart] Filtered ${filteredCandles.length} candles for ${resolution} (from day ${fromDay} to ${day})`);
+        // Convert to lightweight-charts format with proper time labels
+        const ticksPerDay = 1800;
+        const labels: string[] = [];
+        const chartData = candles.map((candle, index) => {
+          let timeLabel: string;
 
-        // Convert to lightweight-charts format
-        const chartData = filteredCandles.map((candle) => ({
-          time: candle.tick,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-        }));
+          switch (resolution) {
+            case '1D':
+              // Show minutes (0-30)
+              const minute = Math.floor((candle.tick % ticksPerDay) / (ticksPerDay / 30));
+              timeLabel = `${minute}`;
+              break;
+            case '5D':
+              // Show day number
+              const day5d = Math.abs(candle.day);
+              timeLabel = `D${day5d}`;
+              break;
+            case '1M':
+              // Show day number
+              const day1m = Math.abs(candle.day);
+              timeLabel = `D${day1m}`;
+              break;
+            case '1Y':
+              // Show day number
+              const day1y = Math.abs(candle.day);
+              timeLabel = `D${day1y}`;
+              break;
+            case '5Y':
+              // Show week number
+              const week = Math.abs(Math.floor(candle.day / 7));
+              timeLabel = `W${week}`;
+              break;
+            default:
+              timeLabel = `${index}`;
+          }
+
+          labels.push(timeLabel);
+
+          return {
+            time: index, // Use index for consistent spacing
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+          };
+        });
+
+        // Update labels state and refresh chart formatter
+        setChartLabels(labels);
+        if (chartRef.current) {
+          chartRef.current.applyOptions({
+            timeScale: {
+              tickMarkFormatter: (time: any) => {
+                const index = Math.floor(time);
+                return labels[index] || `${index}`;
+              },
+            },
+          });
+        }
 
         if (seriesRef.current && chartData.length > 0) {
           seriesRef.current.setData(chartData);
+        } else if (seriesRef.current && chartData.length === 0) {
+          // Clear chart if no data
+          seriesRef.current.setData([]);
         }
 
         setLoading(false);

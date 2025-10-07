@@ -4,7 +4,7 @@ import { formatUSD, formatNumber } from '../utils/format';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function PnLMetrics() {
-  const { assets, getUnrealizedPnL, getTotalPnL, realizedPnL, getROI, getWinLossRatio, getBestWorstPerformers } = useStore();
+  const { assets, cashUSD, netWorthUSD, getUnrealizedPnL, getTotalPnL, realizedPnL, getROI, getWinLossRatio, getBestWorstPerformers } = useStore();
 
   // Get current prices
   const prices: Record<string, number> = {};
@@ -32,7 +32,7 @@ export default function PnLMetrics() {
         P&L & Performance
       </Text>
 
-      <SimpleGrid cols={{ base: 2, sm: 3, md: 5 }} spacing="lg">
+      <SimpleGrid cols={{ base: 2, sm: 3, md: 7 }} spacing="lg">
         {/* Total P&L */}
         <Stack gap={4}>
           <Text size="xs" c="dimmed">
@@ -99,6 +99,28 @@ export default function PnLMetrics() {
                 {ratio === Infinity ? '∞' : formatNumber(ratio, 2)}
               </Badge>
             </Group>
+          </Tooltip>
+        </Stack>
+
+        {/* Cash */}
+        <Stack gap={4}>
+          <Text size="xs" c="dimmed">
+            Cash
+          </Text>
+          <Text size="lg" fw={700} c="terminal.5" ff="monospace">
+            {formatUSD(cashUSD, 0)}
+          </Text>
+        </Stack>
+
+        {/* Net Worth */}
+        <Stack gap={4}>
+          <Text size="xs" c="dimmed">
+            Net Worth
+          </Text>
+          <Tooltip label="Cash + Holdings">
+            <Text size="lg" fw={700} c="terminal.5" ff="monospace">
+              {formatUSD(netWorthUSD, 0)}
+            </Text>
           </Tooltip>
         </Stack>
       </SimpleGrid>

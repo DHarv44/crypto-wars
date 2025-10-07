@@ -2,12 +2,21 @@
  * Format utilities for numbers, currencies, and dates
  */
 
+// Precision constants for crypto units (supports down to 1 satoshi / smallest shitcoin)
+export const UNIT_PRECISION = 8; // 8 decimal places (Bitcoin satoshi precision)
+export const UNIT_STEP = 0.00000001; // Smallest increment for selling units
+export const DUST_THRESHOLD = 1e-8; // Minimum units to consider as "holding" (filters out floating point errors)
+
 export function formatUSD(value: number, decimals = 2): string {
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
 export function formatNumber(value: number, decimals = 2): string {
   return value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+export function formatUnits(value: number, decimals = UNIT_PRECISION): string {
+  return value.toFixed(decimals);
 }
 
 export function formatPercent(value: number, decimals = 1): string {

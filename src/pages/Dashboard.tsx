@@ -21,23 +21,13 @@ export default function Dashboard() {
 
         <NewsTicker />
 
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 7 }}>
-            <PortfolioValueChart />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 5 }}>
-            <PortfolioTable />
-          </Grid.Col>
-        </Grid>
+        <PortfolioTable />
 
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <RecentTrades />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <EventFeed />
-          </Grid.Col>
-        </Grid>
+        <PortfolioValueChart />
+
+        <RecentTrades />
+
+        <EventFeed />
       </Stack>
 
       <BuySellModal />

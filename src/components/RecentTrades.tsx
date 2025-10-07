@@ -2,8 +2,10 @@ import { Paper, Text, Stack, Group, Badge, ScrollArea, Table } from '@mantine/co
 import { useStore } from '../stores/rootStore';
 import { formatUSD, formatNumber } from '../utils/format';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function RecentTrades() {
+  const navigate = useNavigate();
   const { getRecentTrades } = useStore();
   const recentTrades = getRecentTrades(10);
 
@@ -58,7 +60,14 @@ export default function RecentTrades() {
                   </Badge>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" ff="monospace" fw={600} c="terminal.5">
+                  <Text
+                    size="sm"
+                    ff="monospace"
+                    fw={600}
+                    c="terminal.5"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => navigate(`/symbol/${trade.assetSymbol}`)}
+                  >
                     {trade.assetSymbol}
                   </Text>
                 </Table.Td>

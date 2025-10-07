@@ -12,6 +12,8 @@ interface GameState {
   day: number;
   isPaused: boolean;
   devMode: boolean;
+  dayStartTimestamp: number;
+  realTimeDayDuration: number;
 
   // Player
   cashUSD: number;
@@ -24,6 +26,11 @@ interface GameState {
   holdings: Record<string, number>;
   lpPositions: any[];
   blacklisted: boolean;
+  trades: any[];
+  costBasis: Record<string, any>;
+  realizedPnL: number;
+  initialNetWorth: number;
+  netWorthHistory: any[];
 
   // Market
   assets: Record<string, any>;
@@ -106,6 +113,8 @@ export async function saveGame(state: Partial<GameState>): Promise<void> {
       day: state.day ?? 0,
       isPaused: state.isPaused ?? true,
       devMode: state.devMode ?? false,
+      dayStartTimestamp: state.dayStartTimestamp ?? Date.now(),
+      realTimeDayDuration: state.realTimeDayDuration ?? (30 * 60 * 1000),
 
       // Player
       cashUSD: state.cashUSD ?? 10000,
@@ -118,6 +127,11 @@ export async function saveGame(state: Partial<GameState>): Promise<void> {
       holdings: state.holdings ?? {},
       lpPositions: state.lpPositions ?? [],
       blacklisted: state.blacklisted ?? false,
+      trades: state.trades ?? [],
+      costBasis: state.costBasis ?? {},
+      realizedPnL: state.realizedPnL ?? 0,
+      initialNetWorth: state.initialNetWorth ?? 10000,
+      netWorthHistory: state.netWorthHistory ?? [{ tick: 0, value: 10000 }],
 
       // Market
       assets: state.assets ?? {},

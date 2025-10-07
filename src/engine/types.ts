@@ -18,17 +18,27 @@ export interface Asset {
   flagged: boolean;
   rugged: boolean;
   isPlayerToken?: boolean;
-  // Price history for charts (OHLC)
-  priceHistory?: PriceCandle[];
+  volume: number; // Daily trading volume (0-1 scale)
+  // Price history for charts (pre-aggregated by resolution)
+  priceHistory?: PriceHistoryByResolution;
 }
 
 export interface PriceCandle {
   tick: number;
+  day: number; // Which day this candle belongs to
   open: number;
   high: number;
   low: number;
   close: number;
   volume?: number;
+}
+
+export interface PriceHistoryByResolution {
+  today: PriceCandle[];   // Intra-day trades (variable length)
+  d5: PriceCandle[];      // 15 candles (3 per day × 5 days)
+  m1: PriceCandle[];      // 30 candles (1 per day × 30 days)
+  y1: PriceCandle[];      // 365 candles (1 per day × 365 days)
+  y5: PriceCandle[];      // ~260 candles (1 per week × 52 weeks × 5 years)
 }
 
 export interface LPPosition {

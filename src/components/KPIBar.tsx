@@ -4,8 +4,6 @@ import { formatUSD, formatNumber, clampStat } from '../utils/format';
 
 export default function KPIBar() {
   const {
-    cashUSD,
-    netWorthUSD,
     reputation,
     influence,
     security,
@@ -13,39 +11,9 @@ export default function KPIBar() {
     exposure,
   } = useStore();
 
-  const netWorthChange = netWorthUSD - 10000; // Initial was 10k
-  const changeColor = netWorthChange >= 0 ? 'darkGreen' : 'darkRed';
-  const changeSign = netWorthChange >= 0 ? '+' : '';
-
   return (
     <Paper p="md" withBorder>
       <Group justify="space-between" wrap="wrap" gap="md">
-        {/* Cash */}
-        <Stack gap={4} style={{ minWidth: 120 }}>
-          <Text size="xs" c="dimmed" tt="uppercase">
-            Cash
-          </Text>
-          <Text size="lg" fw={700} c="terminal.5" ff="monospace">
-            {formatUSD(cashUSD, 0)}
-          </Text>
-        </Stack>
-
-        {/* Net Worth */}
-        <Stack gap={4} style={{ minWidth: 150 }}>
-          <Text size="xs" c="dimmed" tt="uppercase">
-            Net Worth
-          </Text>
-          <Group gap="xs">
-            <Text size="lg" fw={700} c="terminal.5" ff="monospace">
-              {formatUSD(netWorthUSD, 0)}
-            </Text>
-            <Badge size="sm" color={changeColor} variant="light">
-              {changeSign}
-              {formatUSD(netWorthChange, 0)}
-            </Badge>
-          </Group>
-        </Stack>
-
         {/* Reputation */}
         <Stack gap={4} style={{ minWidth: 140 }}>
           <Text size="xs" c="dimmed" tt="uppercase">

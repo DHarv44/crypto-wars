@@ -3,6 +3,7 @@ import { initRNG } from '../engine/rng';
 
 export interface EngineSlice {
   day: number; // Current day number
+  tick: number; // Current in-game second (1800 ticks per day)
   seed: number;
   devMode: boolean;
 
@@ -23,6 +24,7 @@ export interface EngineSlice {
 
 export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
   day: 1,
+  tick: 0,
   seed: Date.now(),
   devMode: false,
 
@@ -37,6 +39,7 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
     set({
       seed: finalSeed,
       day: 1,
+      tick: 0,
       dayStartTimestamp: Date.now(),
       marketOpen: true,
     });
@@ -50,6 +53,7 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
     const state = get();
     set({
       day: state.day + 1,
+      tick: 0, // Reset tick counter for new day
       dayStartTimestamp: Date.now(),
       marketOpen: true,
     });
@@ -59,6 +63,7 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
     const state = get();
     set({
       day: state.day + numDays,
+      tick: 0, // Reset tick counter for new day
       dayStartTimestamp: Date.now(),
       marketOpen: true,
     });

@@ -14,9 +14,16 @@ export default function TickerTape() {
       .filter((a) => a && !a.rugged)
       .slice(0, 10) // Show top 10
       .map((asset) => {
-        const history = asset.priceHistory || [];
-        const oldPrice = history.length > 0 ? history[Math.max(0, history.length - 5)]?.close || asset.basePrice : asset.basePrice;
-        const change = ((asset.price - oldPrice) / oldPrice) * 100;
+        // Use today's history for intraday change
+        const todayHistory = asset.priceHistory?.today || [];
+
+        let change = 0;
+        if (todayHistory.length > 0) {
+          // Calculate change from start of today
+          const startPrice = todayHistory[0]?.open || asset.price;
+          change = startPrice > 0 ? ((asset.price - startPrice) / startPrice) * 100 : 0;
+        }
+        // If no today history, show 0% (market just opened, no change yet)
 
         return {
           id: asset.id,

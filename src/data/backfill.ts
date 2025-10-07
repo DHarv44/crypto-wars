@@ -278,14 +278,20 @@ function generateRandomWalkData(
   const liquidityFactor = Math.max(0.5, Math.min(2, 1000000 / liquidityUSD));
   const adjustedVolatility = baseVolatility * liquidityFactor;
 
-  // Start price (launched at 30-70% of current basePrice)
-  let currentPrice = basePrice * rng.range(0.3, 0.7);
-  const targetPrice = basePrice; // Should end near current price
+  // Start at day 0 (today) with current basePrice
+  // Work backward to generate history
+  const prices: number[] = [];
+  let currentPrice = basePrice; // Start at current price (day 0)
 
-  // Calculate drift to reach target price by day 0
+  // Calculate launch price (30-70% of current for normal coins, 70-95% for ultra-low)
+  const priceRangeMin = basePrice < 0.0001 ? 0.7 : 0.3;
+  const priceRangeMax = basePrice < 0.0001 ? 0.95 : 0.7;
+  const launchPrice = basePrice * rng.range(priceRangeMin, priceRangeMax);
+
+  // Calculate drift (working backward from basePrice to launchPrice)
   const totalDays = endDay - startDay;
-  const priceRatio = targetPrice / currentPrice;
-  const dailyDrift = (Math.log(priceRatio) / totalDays) * 0.8; // 80% of needed drift
+  const priceRatio = launchPrice / currentPrice;
+  const dailyDrift = (Math.log(priceRatio) / totalDays) * 0.8; // 80% of needed drift (backward)
 
   // Detect if this is a meme coin (high hype, high dev tokens, low audit)
   const isMeme = socialHype > 0.7 && devTokensPct > 40 && auditScore < 0.3;
@@ -302,49 +308,53 @@ function generateRandomWalkData(
     }
   }
 
-  for (let day = startDay; day <= endDay; day++) {
-    // Check for pump/dump event
-    let pumpMultiplier = 1;
-    for (const event of pumpDumpEvents) {
-      const daysSinceEvent = day - event.day;
-      if (daysSinceEvent >= 0 && daysSinceEvent < 20) {
-        // Pump over 5 days, dump over 15 days
-        if (daysSinceEvent < 5) {
-          // Pump phase
-          pumpMultiplier *= 1 + (event.magnitude - 1) * (daysSinceEvent / 5);
-        } else {
-          // Dump phase (exponential decay)
-          const dumpProgress = (daysSinceEvent - 5) / 15;
-          pumpMultiplier *= event.magnitude * Math.exp(-3 * dumpProgress);
-        }
-      }
-    }
-
-    // Random walk with drift toward target
-    const dailyChange = rng.range(-adjustedVolatility, adjustedVolatility) + dailyDrift;
-    currentPrice = currentPrice * (1 + dailyChange) * pumpMultiplier;
-
-    // Keep price reasonable
-    currentPrice = Math.max(currentPrice, basePrice * 0.01);
-    currentPrice = Math.min(currentPrice, basePrice * 50); // Cap at 50x current
-
-    // Generate OHLC with intraday volatility
+  // Generate prices working backward from day 0 to startDay
+  for (let day = endDay; day >= startDay; day--) {
+    // Generate OHLC for this day
     const intradayVol = adjustedVolatility * 0.5;
     const high = currentPrice * (1 + Math.abs(rng.range(0, intradayVol)));
     const low = currentPrice * (1 - Math.abs(rng.range(0, intradayVol)));
     const open = currentPrice * (1 + rng.range(-intradayVol * 0.5, intradayVol * 0.5));
     const close = currentPrice;
 
-    ohlc.push({
+    prices.unshift({
       day,
       open,
       high: Math.max(open, close, high),
       low: Math.min(open, close, low),
       close,
     });
+
+    // Move backward to previous day
+    if (day > startDay) {
+      // Check for pump/dump event (working backward)
+      let pumpMultiplier = 1;
+      for (const event of pumpDumpEvents) {
+        const daysSinceEvent = day - event.day;
+        if (daysSinceEvent >= 0 && daysSinceEvent < 20) {
+          // Pump over 5 days, dump over 15 days
+          if (daysSinceEvent < 5) {
+            // Pump phase
+            pumpMultiplier *= 1 + (event.magnitude - 1) * (daysSinceEvent / 5);
+          } else {
+            // Dump phase (exponential decay)
+            const dumpProgress = (daysSinceEvent - 5) / 15;
+            pumpMultiplier *= event.magnitude * Math.exp(-3 * dumpProgress);
+          }
+        }
+      }
+
+      // Random walk backward with drift toward launch price
+      const dailyChange = rng.range(-adjustedVolatility, adjustedVolatility) + dailyDrift;
+      currentPrice = currentPrice * (1 + dailyChange) / pumpMultiplier;
+
+      // Keep price reasonable
+      currentPrice = Math.max(currentPrice, basePrice * 0.01);
+      currentPrice = Math.min(currentPrice, basePrice * 50); // Cap at 50x current
+    }
   }
 
-  return ohlc;
+  return prices;
 }
 
 /**

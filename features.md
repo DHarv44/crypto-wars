@@ -355,6 +355,43 @@ rugProb = clamp(
 - EventFeed (with toasts)
 - Speed controls (1×/2×/4×, Pause/Play/Step)
 
+**DASHBOARD ENHANCEMENTS (Feature Sets):**
+
+#### FS-1: P&L & Performance Metrics
+- [ ] Real-time P&L display (unrealized + realized)
+- [ ] Today/Week/All-time performance ($ and %)
+- [ ] Win/Loss ratio & trade count
+- [ ] Best/worst performers in portfolio
+- [ ] Total ROI metric
+
+#### FS-2: Portfolio Analytics & Visualization
+- [ ] Asset allocation pie/donut chart
+- [ ] Portfolio value line chart (historical)
+- [ ] Risk exposure meter (aggregate portfolio risk)
+- [ ] Concentration warnings (over-exposure alerts)
+- [ ] Portfolio diversity score
+
+#### FS-3: Market Intelligence Panel
+- [ ] Top gainers/losers (market-wide, not just portfolio)
+- [ ] Volume leaders widget
+- [ ] Market sentiment indicator (based on rug events, audits)
+- [ ] Trending coins (high social hype + volume)
+- [ ] Recent rug pulls / flagged assets alert
+
+#### FS-4: Quick Actions & Watchlist
+- [ ] Watchlist functionality (star/favorite assets)
+- [ ] Quick buy/sell from dashboard portfolio table
+- [ ] One-click rebalance suggestions
+- [ ] Alerts panel (price targets, rug warnings)
+- [ ] Recent trades history (last 10)
+
+#### FS-5: AI-Powered Insights
+- [ ] Influencer AI suggestions on dashboard
+- [ ] Risk warnings based on portfolio composition
+- [ ] Opportunity scanner (undervalued audited assets)
+- [ ] Whale movement notifications
+- [ ] Gov offer predictions
+
 ### Market (/market)
 - Table: Ticker, Price, %24h, RugProb, Audit, Liquidity, Sparkline, Quick Buy/Sell
 - Filters: risk, liquidity, audited

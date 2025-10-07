@@ -26,7 +26,7 @@ const OP_DESCRIPTIONS: Record<OperationType, string> = {
 };
 
 export default function OpsPanel() {
-  const { assets, list, cashUSD, influence, scrutiny, activeOps, addOperation, saveToSession } = useStore();
+  const { assets, list, cashUSD, influence, scrutiny, activeOps, addOperation, saveGame } = useStore();
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [selectedOp, setSelectedOp] = useState<OperationType>('pump');
 
@@ -44,7 +44,7 @@ export default function OpsPanel() {
   const canAfford = cashUSD >= opCost;
   const hasInfluence = selectedOp === 'bribe' ? influence >= 50 : true;
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
     if (!selectedAsset || !canAfford || !hasInfluence) return;
 
     const store = useStore.getState();
@@ -99,8 +99,8 @@ export default function OpsPanel() {
       });
     }
 
-    // Save to session storage after operation
-    saveToSession();
+    // Save to IndexedDB after operation
+    await saveGame();
 
     // Reset selection
     setSelectedAssetId(null);

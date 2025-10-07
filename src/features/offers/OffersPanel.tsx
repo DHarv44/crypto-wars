@@ -4,11 +4,11 @@ import { formatUSD } from '../../utils/format';
 import { acceptGovBump, acceptWhaleOTC } from '../../engine/offers';
 
 export default function OffersPanel() {
-  const { activeOffers, acceptOffer, declineOffer, assets, cashUSD, saveToSession } = useStore();
+  const { activeOffers, acceptOffer, declineOffer, assets, cashUSD, saveGame } = useStore();
 
   const availableOffers = activeOffers.filter((o) => !o.accepted);
 
-  const handleAccept = (offerId: string) => {
+  const handleAccept = async (offerId: string) => {
     const offer = activeOffers.find((o) => o.id === offerId);
     if (!offer) return;
 
@@ -50,11 +50,11 @@ export default function OffersPanel() {
     acceptOffer(offerId);
     setTimeout(() => store.removeOffer(offerId), 100);
 
-    // Save to session storage after accepting offer
-    saveToSession();
+    // Save to IndexedDB after accepting offer
+    await saveGame();
   };
 
-  const handleDecline = (offerId: string) => {
+  const handleDecline = async (offerId: string) => {
     declineOffer(offerId);
     useStore.getState().pushEvent({
       tick: useStore.getState().tick,
@@ -62,8 +62,8 @@ export default function OffersPanel() {
       message: 'Offer declined',
     });
 
-    // Save to session storage after declining offer
-    saveToSession();
+    // Save to IndexedDB after declining offer
+    await saveGame();
   };
 
   return (

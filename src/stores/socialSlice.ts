@@ -72,8 +72,12 @@ export interface SocialPost {
   seed: string; // For determinism
   triggersHit: SocialTrigger[];
   commentsShown: SocialComment[];
+  genericComments: SocialComment[]; // Generic time-based comments (saved permanently)
   resolved: boolean;
   alignment?: number; // -0.25 to +0.25
+  followerBonusGranted?: boolean; // Track if "Following" comment bonus was granted
+  baseFollowerGain: number; // Base followers to gain from this post
+  followersApplied: number; // Track how many followers have been applied so far
 
   // Outcome tracking
   entryPrices: Record<string, number>; // { BTC: 45000 }
@@ -171,18 +175,22 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
       seed: postData.seed || `${Date.now()}-${Math.random()}`,
       triggersHit: [],
       commentsShown: [],
+      genericComments: [],
       resolved: false,
+      baseFollowerGain: 0, // Will be set below
+      followersApplied: 0, // No followers applied yet
       entryPrices: postData.entryPrices || {},
       ...postData,
     };
 
-    // Calculate follower delta
+    // Calculate base follower gain (will be applied gradually in checkPostTriggers)
     const baseFollowerGain = Math.floor(
       social.followers * post.qualityHints.engagement * 0.01 * (0.5 + social.credibility)
     );
 
-    // Update social stats
-    const newFollowers = Math.max(0, social.followers + baseFollowerGain);
+    post.baseFollowerGain = baseFollowerGain;
+
+    const newFollowers = social.followers; // Don't add yet, will be applied dynamically
     const newEngagement = social.engagement * 0.7 + post.qualityHints.engagement * 0.3;
 
     set({
@@ -203,7 +211,7 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
       pushEvent({
         tick: day,
         type: 'info',
-        message: `Posted on HypeWire (+${baseFollowerGain} followers)`,
+        message: `Posted on HypeWire (up to +${baseFollowerGain} followers)`,
       });
     }
   },
@@ -219,6 +227,112 @@ export const createSocialSlice: StateCreator<SocialSlice> = (set, get) => ({
 
       const elapsedMs = Date.now() - post.postedAt;
       const elapsedDays = elapsedMs / (30 * 60 * 1000); // 30min = 1 day
+      const elapsedMinutes = elapsedMs / 60000;
+
+      // Progressive AI comment reveal based on time and accuracy
+      if (post.commentPack && post.targets.length > 0) {
+        const alignment = calculateAlignment(post, assets);
+        const alignmentPct = Math.abs(alignment * 100);
+
+        // Determine which pool to use
+        let pool: SocialComment[] = [];
+        if (alignment > 0.05) {
+          pool = post.commentPack.positive || [];
+        } else if (alignment < -0.05) {
+          pool = post.commentPack.negative || [];
+        } else {
+          pool = post.commentPack.neutral || [];
+        }
+
+        // Calculate how many AI comments should be shown (0-20 total, max 7 per pool)
+        const maxComments = pool.length;
+        let targetCommentCount = 0;
+
+        // Time-based progression
+        if (elapsedMinutes >= 1) targetCommentCount = Math.ceil(maxComments * 0.15); // 15% at 1min
+        if (elapsedMinutes >= 5) targetCommentCount = Math.ceil(maxComments * 0.3); // 30% at 5min
+        if (elapsedMinutes >= 15) targetCommentCount = Math.ceil(maxComments * 0.5); // 50% at 15min
+        if (elapsedMinutes >= 30) targetCommentCount = Math.ceil(maxComments * 0.7); // 70% at 30min
+        if (elapsedMinutes >= 60) targetCommentCount = maxComments; // 100% at 1 hour
+
+        // Boost comment count if alignment is strong (accurate prediction)
+        if (alignmentPct > 5) {
+          targetCommentCount = Math.min(maxComments, Math.ceil(targetCommentCount * (1 + alignmentPct / 100)));
+        }
+
+        // Add comments progressively
+        const currentAIComments = post.commentsShown.length;
+        if (currentAIComments < targetCommentCount) {
+          const commentsToAdd = pool.slice(currentAIComments, targetCommentCount).map((c) => ({
+            ...c,
+            text: c.text
+              .replace(/{ASSET}/g, post.targets[0] || 'COIN')
+              .replace(/{RET%}/g, (alignment * 100).toFixed(1))
+              .replace(/{DAYS}/g, Math.floor(elapsedDays).toString()),
+            revealedAt: Date.now(),
+          }));
+
+          if (commentsToAdd.length > 0) {
+            set((s) => ({
+              posts: s.posts.map((p) =>
+                p.id === post.id
+                  ? { ...p, commentsShown: [...p.commentsShown, ...commentsToAdd] }
+                  : p
+              ),
+            }));
+          }
+        }
+      }
+
+      // Dynamic follower growth based on post performance
+      if (post.targets.length > 0 && elapsedMinutes >= 1) {
+        // Skip old posts that don't have the new fields
+        if (post.baseFollowerGain === undefined || post.followersApplied === undefined) return;
+
+        const baseFollowerGain = post.baseFollowerGain;
+        const followersApplied = post.followersApplied;
+
+        if (baseFollowerGain === 0) return;
+
+        const alignment = calculateAlignment(post, assets);
+        const alignmentPct = alignment * 100;
+
+        // Time multiplier (gradual reveal)
+        let timeMultiplier = 0;
+        if (elapsedMinutes >= 1) timeMultiplier = 0.2;
+        if (elapsedMinutes >= 5) timeMultiplier = 0.5;
+        if (elapsedMinutes >= 30) timeMultiplier = 0.8;
+        if (elapsedMinutes >= 60) timeMultiplier = 1.0;
+        if (elapsedMinutes >= 1440) timeMultiplier = 1.5;
+
+        // Accuracy multiplier (boost if right, penalty if wrong)
+        let accuracyMultiplier = 1.0;
+        if (post.sentiment === 'bullish') {
+          accuracyMultiplier = alignmentPct > 2 ? 1 + alignmentPct / 50 : 1 + alignmentPct / 100;
+        } else if (post.sentiment === 'bearish') {
+          accuracyMultiplier = alignmentPct < -2 ? 1 - alignmentPct / 50 : 1 + alignmentPct / 100;
+        }
+
+        // Calculate target followers to apply
+        const targetFollowers = Math.floor(baseFollowerGain * timeMultiplier * accuracyMultiplier);
+
+        // Apply incremental follower changes
+        if (targetFollowers !== followersApplied) {
+          const followerChange = targetFollowers - followersApplied;
+
+          set((s) => ({
+            social: {
+              ...s.social,
+              followers: Math.max(0, s.social.followers + followerChange),
+            },
+            posts: s.posts.map((p) =>
+              p.id === post.id
+                ? { ...p, followersApplied: targetFollowers }
+                : p
+            ),
+          }));
+        }
+      }
 
       // Trigger A: Price move (5% threshold)
       if (!post.triggersHit.includes('price_move')) {

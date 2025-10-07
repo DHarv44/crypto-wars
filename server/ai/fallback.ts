@@ -40,9 +40,9 @@ export function generateFallbackCommentPack(
     : 'analysis';
 
   const sentiment =
-    lowerText.includes('bull') || lowerText.includes('moon') || lowerText.includes('🚀')
+    lowerText.includes('bull') || lowerText.includes('moon') || lowerText.includes('🚀') || lowerText.includes('pump')
       ? 'bullish'
-      : lowerText.includes('bear') || lowerText.includes('dump') || lowerText.includes('🔻')
+      : lowerText.includes('bear') || lowerText.includes('dump') || lowerText.includes('crash') || lowerText.includes('🔻') || lowerText.includes('📉') || lowerText.includes('sell') || lowerText.includes('rip')
       ? 'bearish'
       : 'neutral';
 

@@ -1,4 +1,5 @@
-import { Group, Text, Button, ActionIcon, Menu, rem } from '@mantine/core';
+import { Group, Text, Button, ActionIcon, Menu, rem, Stack } from '@mantine/core';
+import { formatUSD } from '../utils/format';
 import { useStore } from '../stores/rootStore';
 import { useState, useEffect } from 'react';
 import { IconDotsVertical, IconDownload, IconUpload, IconPlayerPlay } from '@tabler/icons-react';
@@ -8,7 +9,7 @@ import { FileButton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
 export default function Header() {
-  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen } = useStore();
+  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD } = useStore();
 
   const [timeRemaining, setTimeRemaining] = useState('');
   const [canAdvance, setCanAdvance] = useState(false);
@@ -83,13 +84,40 @@ export default function Header() {
   return (
     <>
       <Group h="100%" px="md" justify="space-between">
-        {/* Left: Logo */}
-        <Text size="xl" fw={900} c="terminal.5" ff="monospace">
-          CRYPTO WARS
-        </Text>
-
-        {/* Right: Day counter and menu */}
+        {/* Left: Logo and Handle */}
         <Group gap="md">
+          <Text size="xl" fw={900} c="terminal.5" ff="monospace">
+            CRYPTO WARS
+          </Text>
+          {profile?.handle && (
+            <Text size="lg" c="dimmed" ff="monospace">
+              - {profile.handle}
+            </Text>
+          )}
+        </Group>
+
+        {/* Right: Stats, Day counter and menu */}
+        <Group gap="lg">
+          {/* Cash & Net Worth */}
+          <Group gap="md">
+            <Stack gap={0}>
+              <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+                Cash
+              </Text>
+              <Text size="sm" fw={700} c="green" ff="monospace">
+                {formatUSD(cashUSD, 0)}
+              </Text>
+            </Stack>
+            <Stack gap={0}>
+              <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+                Net Worth
+              </Text>
+              <Text size="sm" fw={700} c="terminal.5" ff="monospace">
+                {formatUSD(netWorthUSD, 0)}
+              </Text>
+            </Stack>
+          </Group>
+
           {/* Day Counter */}
           <Group gap="xs">
             <Text size="sm" c="dimmed" ff="monospace">

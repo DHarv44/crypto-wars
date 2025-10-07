@@ -16,7 +16,9 @@ export default function BuySellModal() {
     holdings,
     applyUpdates,
     applyTickUpdates,
-    saveToSession,
+    recordTrade,
+    day,
+    saveGame,
     marketOpen,
   } = useStore();
 
@@ -47,7 +49,7 @@ export default function BuySellModal() {
     }
   }, [asset, amount, tradeType, cashUSD, currentHoldings]);
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
     if (!asset || !quote) return;
 
     try {
@@ -81,8 +83,19 @@ export default function BuySellModal() {
       }
       applyUpdates(result.playerUpdates);
 
-      // Save to session storage after trade
-      saveToSession();
+      // Record trade for P&L tracking
+      recordTrade({
+        tick: day,
+        type: tradeType === 'buy' ? 'buy' : 'sell',
+        assetId: asset.id,
+        assetSymbol: asset.symbol,
+        units: quote.units,
+        pricePerUnit: asset.price,
+        totalUSD: tradeType === 'buy' ? Number(amount) : quote.amount,
+      });
+
+      // Save to IndexedDB after trade
+      await saveGame();
 
       // Show success notification
       notifications.show({

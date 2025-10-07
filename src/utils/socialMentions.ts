@@ -106,6 +106,6 @@ export function highlightMentions(text: string): string {
 export function linkifyMentions(text: string): string {
   return text.replace(
     /[@$]([A-Z]{2,10})/gi,
-    '<a href="/asset/$1" class="mention">$&</a>'
+    '<a href="/symbol/$1" class="mention">$&</a>'
   );
 }

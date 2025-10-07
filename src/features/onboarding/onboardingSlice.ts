@@ -4,6 +4,15 @@ export type Archetype = 'meme-mogul' | 'rug-academic' | 'otc-fixer' | 'bot-ranch
 export type Vibe = 'shill-maxx' | 'market-zen' | 'investigative-fud';
 export type Toggle = 'diamond-hands' | 'paper-hands' | 'anon-mask' | null;
 
+export interface Profile {
+  id: string;
+  handle: string;
+  alias: string;
+  title: string;
+  archetype: Archetype;
+  vibe: Vibe;
+}
+
 export interface OnboardingSlice {
   // State
   hasCompletedOnboarding: boolean;
@@ -14,6 +23,7 @@ export interface OnboardingSlice {
   archetype: Archetype | null;
   vibe: Vibe | null;
   toggle: Toggle;
+  profile: Profile | null;
 
   // Actions
   setScreen: (screen: number) => void;
@@ -23,6 +33,7 @@ export interface OnboardingSlice {
   setArchetype: (archetype: Archetype) => void;
   setVibe: (vibe: Vibe) => void;
   setToggle: (toggle: Toggle) => void;
+  setProfile: (profile: Profile) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
 }
@@ -37,6 +48,7 @@ export const createOnboardingSlice: StateCreator<OnboardingSlice> = (set) => ({
   archetype: null,
   vibe: null,
   toggle: null,
+  profile: null,
 
   // Actions
   setScreen: (screen) => set({ currentScreen: screen }),
@@ -46,6 +58,7 @@ export const createOnboardingSlice: StateCreator<OnboardingSlice> = (set) => ({
   setArchetype: (archetype) => set({ archetype }),
   setVibe: (vibe) => set({ vibe }),
   setToggle: (toggle) => set({ toggle }),
+  setProfile: (profile) => set({ profile }),
 
   completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
@@ -59,5 +72,6 @@ export const createOnboardingSlice: StateCreator<OnboardingSlice> = (set) => ({
       archetype: null,
       vibe: null,
       toggle: null,
+      profile: null,
     }),
 });

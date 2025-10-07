@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { createChart, IChartApi, ISeriesApi, CandlestickData, Time } from 'lightweight-charts';
-import { Paper, Stack, SegmentedControl, Text, Group, Loader, Box } from '@mantine/core';
-import { getTimeSeries, decompressTimeSeries } from '../data/db';
-import { ChartResolution, GeneratedEvent } from '../data/types';
+import { createChart, CandlestickSeries } from 'lightweight-charts';
+import { Paper, Stack, SegmentedControl, Text, Group, Loader, Box, Alert } from '@mantine/core';
+import { ChartResolution } from '../data/types';
 import { useStore } from '../stores/rootStore';
-import { getActiveProfileId } from '../utils/storage';
+import { AlertCircle } from 'lucide-react';
 
 interface AssetChartProps {
   assetId: string;
@@ -12,126 +11,129 @@ interface AssetChartProps {
 }
 
 export default function AssetChart({ assetId, assetName }: AssetChartProps) {
-  const { tick } = useStore();
+  const { assets, day } = useStore();
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const chartRef = useRef<any>(null);
+  const seriesRef = useRef<any>(null);
 
-  const [resolution, setResolution] = useState<ChartResolution>('1M');
+  const [resolution, setResolution] = useState<ChartResolution>('5D');
   const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<GeneratedEvent[]>([]);
-  const [hoveredEvent, setHoveredEvent] = useState<GeneratedEvent | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize chart
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { color: '#0B0E12' },
-        textColor: '#DDD',
-      },
-      grid: {
-        vertLines: { color: 'rgba(0, 255, 0, 0.1)' },
-        horzLines: { color: 'rgba(0, 255, 0, 0.1)' },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 400,
-      timeScale: {
-        borderColor: 'rgba(0, 255, 0, 0.3)',
-        timeVisible: true,
-      },
-      rightPriceScale: {
-        borderColor: 'rgba(0, 255, 0, 0.3)',
-      },
-    });
+    try {
+      const chart = createChart(chartContainerRef.current, {
+        layout: {
+          background: { color: '#0B0E12' },
+          textColor: '#DDD',
+        },
+        grid: {
+          vertLines: { color: 'rgba(0, 255, 0, 0.1)' },
+          horzLines: { color: 'rgba(0, 255, 0, 0.1)' },
+        },
+        width: chartContainerRef.current.clientWidth,
+        height: 400,
+        timeScale: {
+          borderColor: 'rgba(0, 255, 0, 0.3)',
+          timeVisible: true,
+        },
+        rightPriceScale: {
+          borderColor: 'rgba(0, 255, 0, 0.3)',
+        },
+      });
 
-    const candlestickSeries = chart.addCandlestickSeries({
-      upColor: '#00FF00',
-      downColor: '#FF0000',
-      borderUpColor: '#00FF00',
-      borderDownColor: '#FF0000',
-      wickUpColor: '#00FF00',
-      wickDownColor: '#FF0000',
-    });
+      // V5 API: Use addSeries with CandlestickSeries type
+      const candlestickSeries = chart.addSeries(CandlestickSeries, {
+        upColor: '#00FF00',
+        downColor: '#FF0000',
+        borderUpColor: '#00FF00',
+        borderDownColor: '#FF0000',
+        wickUpColor: '#00FF00',
+        wickDownColor: '#FF0000',
+      });
 
-    chartRef.current = chart;
-    seriesRef.current = candlestickSeries;
+      chartRef.current = chart;
+      seriesRef.current = candlestickSeries;
+      setError(null);
 
-    // Handle resize
-    const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-    };
+      // Handle resize
+      const handleResize = () => {
+        if (chartContainerRef.current && chartRef.current) {
+          chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
+        }
+      };
 
-    window.addEventListener('resize', handleResize);
+      window.addEventListener('resize', handleResize);
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (chartRef.current) {
+          chartRef.current.remove();
+        }
+      };
+    } catch (err) {
+      console.error('Failed to initialize chart:', err);
+      setError(`Failed to initialize chart: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   }, []);
 
   // Load chart data when resolution changes
   useEffect(() => {
-    const loadChartData = async () => {
+    const loadChartData = () => {
+      if (error) return; // Don't try to load data if chart failed to initialize
+
       setLoading(true);
       try {
-        const profileId = getActiveProfileId();
-        if (!profileId) {
-          console.error('No active profile');
+        const asset = assets[assetId];
+        if (!asset || !asset.priceHistory || asset.priceHistory.length === 0) {
+          console.error(`[AssetChart] No price history found for assetId=${assetId}`);
+          setError('No price data available');
           setLoading(false);
           return;
         }
 
-        const compressed = await getTimeSeries(profileId, assetId, resolution);
-        if (!compressed) {
-          console.error('No chart data found');
-          setLoading(false);
-          return;
+        console.log(`[AssetChart] Loading chart data: assetId=${assetId}, resolution=${resolution}, priceHistory length=${asset.priceHistory.length}`);
+
+        // Filter candles by resolution (day range)
+        let daysToShow = 365;
+        switch (resolution) {
+          case '5D': daysToShow = 5; break;
+          case '1M': daysToShow = 30; break;
+          case '1Y': daysToShow = 365; break;
+          case '5Y': daysToShow = 365 * 5; break;
         }
 
-        const decompressed = decompressTimeSeries(compressed);
-        setEvents(compressed.events || []);
+        const fromDay = day - daysToShow;
+        const filteredCandles = asset.priceHistory.filter(candle => candle.day >= fromDay && candle.day <= day);
 
-        // Convert OHLC data to lightweight-charts format
-        const chartData: CandlestickData[] = decompressed.map((ohlc) => ({
-          time: (tick + ohlc.day) as Time, // Convert relative day to absolute tick
-          open: ohlc.open,
-          high: ohlc.high,
-          low: ohlc.low,
-          close: ohlc.close,
+        console.log(`[AssetChart] Filtered ${filteredCandles.length} candles for ${resolution} (from day ${fromDay} to ${day})`);
+
+        // Convert to lightweight-charts format
+        const chartData = filteredCandles.map((candle) => ({
+          time: candle.tick,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
         }));
 
-        if (seriesRef.current) {
+        if (seriesRef.current && chartData.length > 0) {
           seriesRef.current.setData(chartData);
         }
 
         setLoading(false);
-      } catch (error) {
-        console.error('Failed to load chart data:', error);
+      } catch (err) {
+        console.error('Failed to load chart data:', err);
+        setError(`Failed to load chart data: ${err instanceof Error ? err.message : 'Unknown error'}`);
         setLoading(false);
       }
     };
 
     loadChartData();
-  }, [assetId, resolution, tick]);
-
-  // Add event markers
-  useEffect(() => {
-    if (!seriesRef.current || events.length === 0) return;
-
-    const markers = events.map((event) => ({
-      time: (tick + event.day) as Time,
-      position: event.impact > 0 ? ('belowBar' as const) : ('aboveBar' as const),
-      color: event.impact > 0 ? '#00FF00' : '#FF0000',
-      shape: event.type === 'news' ? ('circle' as const) : ('square' as const),
-      text: event.type === 'news' ? 'N' : 'I',
-    }));
-
-    seriesRef.current.setMarkers(markers);
-  }, [events, tick]);
+  }, [assetId, resolution, day, error, assets]);
 
   return (
     <Paper p="md" withBorder>
@@ -154,85 +156,35 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
               { label: '5Y', value: '5Y' },
             ]}
             size="xs"
+            disabled={!!error}
           />
         </Group>
 
+        {/* Error Display */}
+        {error && (
+          <Alert icon={<AlertCircle size={16} />} title="Chart Error" color="red">
+            {error}
+          </Alert>
+        )}
+
         {/* Chart Container */}
-        <Box pos="relative">
-          {loading && (
-            <Box
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 10,
-              }}
-            >
-              <Loader color="terminal.5" />
-            </Box>
-          )}
-          <div ref={chartContainerRef} style={{ opacity: loading ? 0.3 : 1 }} />
-        </Box>
-
-        {/* Event Legend */}
-        <Group gap="md">
-          <Text size="xs" c="dimmed">
-            Legend:
-          </Text>
-          <Group gap="xs">
-            <Box
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                backgroundColor: '#00FF00',
-              }}
-            />
-            <Text size="xs" c="dimmed">
-              Positive News
-            </Text>
-          </Group>
-          <Group gap="xs">
-            <Box
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                backgroundColor: '#FF0000',
-              }}
-            />
-            <Text size="xs" c="dimmed">
-              Negative News
-            </Text>
-          </Group>
-          <Group gap="xs">
-            <Box
-              style={{
-                width: 10,
-                height: 10,
-                backgroundColor: '#00FF00',
-              }}
-            />
-            <Text size="xs" c="dimmed">
-              Influencer Post
-            </Text>
-          </Group>
-        </Group>
-
-        {/* Hovered Event */}
-        {hoveredEvent && (
-          <Paper p="sm" bg="dark.8" withBorder>
-            <Text size="xs" c="dimmed" mb={4}>
-              Day {hoveredEvent.day}
-            </Text>
-            <Text size="sm" fw={500}>
-              {hoveredEvent.headline}
-            </Text>
-            <Text size="xs" c="dimmed" mt={4}>
-              Source: {hoveredEvent.source}
-            </Text>
-          </Paper>
+        {!error && (
+          <Box pos="relative">
+            {loading && (
+              <Box
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 10,
+                }}
+              >
+                <Loader color="terminal.5" />
+              </Box>
+            )}
+            <div ref={chartContainerRef} style={{ opacity: loading ? 0.3 : 1 }} />
+          </Box>
         )}
       </Stack>
     </Paper>

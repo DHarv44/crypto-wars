@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test IndexedDB</title>
+</head>
+<body>
+    <h1>Testing IndexedDB</h1>
+    <button onclick="testSave()">Test Save</button>
+    <button onclick="testLoad()">Test Load</button>
+    <pre id="output"></pre>
+
+    <script>
+        const log = (msg) => {
+            document.getElementById('output').textContent += msg + '\n';
+            console.log(msg);
+        };
+
+        async function testSave() {
+            try {
+                log('Opening DB...');
+                const db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open('test-db', 1);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('testStore')) {
+                            db.createObjectStore('testStore', { keyPath: 'id' });
+                        }
+                    };
+                });
+
+                log('DB opened');
+
+                log('Saving data...');
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction('testStore', 'readwrite');
+                    const store = transaction.objectStore('testStore');
+                    const request = store.put({ id: 'test', data: 'Hello World', assets: { btc: 'Bitcoin', eth: 'Ethereum' } });
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+
+                log('Data saved successfully!');
+            } catch (error) {
+                log('ERROR: ' + error.message);
+            }
+        }
+
+        async function testLoad() {
+            try {
+                log('Opening DB...');
+                const db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open('test-db', 1);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+
+                log('Loading data...');
+                const data = await new Promise((resolve, reject) => {
+                    const transaction = db.transaction('testStore', 'readonly');
+                    const store = transaction.objectStore('testStore');
+                    const request = store.get('test');
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+
+                log('Data loaded: ' + JSON.stringify(data));
+            } catch (error) {
+                log('ERROR: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

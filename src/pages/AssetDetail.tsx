@@ -1,4 +1,4 @@
-import { Container, Title, Grid, Paper, Stack, Text, Group, Button, Badge } from '@mantine/core';
+import { Container, Title, Grid, Paper, Stack, Text, Group, Button, Badge, Timeline } from '@mantine/core';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../stores/rootStore';
 import AssetChart from '../components/AssetChart';
@@ -6,14 +6,20 @@ import RiskMeter from '../components/RiskMeter';
 import BuySellModal from '../features/trading/BuySellModal';
 import { formatUSD, formatPercent, getChangeColor } from '../utils/format';
 import { useMemo } from 'react';
+import { Newspaper, AlertTriangle } from 'lucide-react';
 
 export default function AssetDetail() {
-  const { id } = useParams();
+  const { symbol } = useParams();
   const navigate = useNavigate();
-  const { assets, holdings, openBuySellModal } = useStore();
+  const { assets, holdings, openBuySellModal, getNewsByAsset, day } = useStore();
 
-  const asset = id ? assets[id] : null;
-  const currentHoldings = id ? holdings[id] || 0 : 0;
+  // Find asset by symbol (case-insensitive)
+  const asset = symbol
+    ? Object.values(assets).find(a => a.symbol.toLowerCase() === symbol.toLowerCase())
+    : null;
+
+  const currentHoldings = asset ? holdings[asset.id] || 0 : 0;
+  const assetNews = asset ? getNewsByAsset(asset.id) : [];
 
   const change24h = useMemo(() => {
     if (!asset || !asset.priceHistory || asset.priceHistory.length === 0) return 0;
@@ -29,7 +35,7 @@ export default function AssetDetail() {
           Asset Not Found
         </Title>
         <Text c="dimmed" mt="md">
-          The asset with ID "{id}" does not exist.
+          The asset with symbol "{symbol}" does not exist.
         </Text>
         <Button mt="lg" onClick={() => navigate('/market')}>
           Back to Market
@@ -189,6 +195,64 @@ export default function AssetDetail() {
             </Grid.Col>
           </Grid>
         </Paper>
+
+        {/* News Articles */}
+        {assetNews.length > 0 && (
+          <Paper p="md" withBorder>
+            <Text size="sm" fw={700} mb="md" c="terminal.5" tt="uppercase">
+              News & Updates
+            </Text>
+            <Timeline active={-1} bulletSize={24} lineWidth={2}>
+              {assetNews.slice(0, 20).map((article) => {
+                const debunked = !!article.debunkedDay;
+                const daysAgo = day - article.day;
+                const relativeTime = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo} days ago`;
+
+                const sentimentColor = debunked
+                  ? 'gray'
+                  : article.isFake
+                    ? 'yellow'
+                    : article.sentiment === 'bullish'
+                      ? 'teal'
+                      : article.sentiment === 'bearish'
+                        ? 'red'
+                        : 'gray';
+
+                return (
+                  <Timeline.Item
+                    key={article.id}
+                    bullet={article.isFake && !debunked ? <AlertTriangle size={12} /> : <Newspaper size={12} />}
+                    color={sentimentColor}
+                  >
+                    <Group justify="space-between" mb={4}>
+                      <Text size="xs" c="dimmed" ff="monospace">
+                        {relativeTime}
+                      </Text>
+                      <Badge size="xs" color={sentimentColor} variant="light">
+                        {article.sentiment}
+                      </Badge>
+                    </Group>
+                    <Text
+                      size="sm"
+                      style={{
+                        textDecoration: debunked ? 'line-through' : 'none',
+                        opacity: debunked ? 0.6 : 1,
+                      }}
+                    >
+                      {debunked && '[DEBUNKED] '}
+                      {article.headline}
+                    </Text>
+                    {article.isFake && !debunked && (
+                      <Text size="xs" c="yellow" mt={4}>
+                        ⚠️ Unverified source
+                      </Text>
+                    )}
+                  </Timeline.Item>
+                );
+              })}
+            </Timeline>
+          </Paper>
+        )}
       </Stack>
 
       <BuySellModal />

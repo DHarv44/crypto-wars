@@ -5,6 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crypto Wars - Terminal Edition</title>
+    <script>
+      // Set dark mode before React mounts to prevent flash
+      try {
+        const colorScheme = window.localStorage.getItem('mantine-color-scheme-value') || 'dark';
+        document.documentElement.setAttribute('data-mantine-color-scheme', colorScheme);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

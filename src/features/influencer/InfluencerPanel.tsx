@@ -24,12 +24,12 @@ export default function InfluencerPanel() {
     adjustStat,
     pushEvent,
     tick,
-    saveToSession,
+    saveGame,
   } = useStore();
 
   const [selectedTone, setSelectedTone] = useState<ContentTone>('neutral');
 
-  const handlePostContent = () => {
+  const handlePostContent = async () => {
     if (cashUSD < CONTENT_COSTS.post) return;
 
     const rng = { range: (min: number, max: number) => Math.random() * (max - min) + min };
@@ -51,11 +51,11 @@ export default function InfluencerPanel() {
       message: `Posted ${selectedTone} content (+${followerGain} followers, ${engagementDelta > 0 ? '+' : ''}${formatPercent(engagementDelta)} engagement)`,
     });
 
-    // Save to session storage after posting content
-    saveToSession();
+    // Save to IndexedDB after posting content
+    await saveGame();
   };
 
-  const handleBuyFollowers = () => {
+  const handleBuyFollowers = async () => {
     if (cashUSD < CONTENT_COSTS.buyFollowers) return;
 
     const followersPurchased = CONTENT_COSTS.buyFollowers * 10;
@@ -71,11 +71,11 @@ export default function InfluencerPanel() {
       message: `Bought ${formatNumber(followersPurchased)} followers (-${formatPercent(authenticityLoss)} authenticity)`,
     });
 
-    // Save to session storage after buying followers
-    saveToSession();
+    // Save to IndexedDB after buying followers
+    await saveGame();
   };
 
-  const handleStartCampaign = () => {
+  const handleStartCampaign = async () => {
     if (cashUSD < CONTENT_COSTS.campaign) return;
 
     const followerGain = Math.floor(Math.random() * 1000 + 500);
@@ -91,8 +91,8 @@ export default function InfluencerPanel() {
       message: `Campaign launched! (+${followerGain} followers, +${influenceGain} influence)`,
     });
 
-    // Save to session storage after launching campaign
-    saveToSession();
+    // Save to IndexedDB after launching campaign
+    await saveGame();
   };
 
   const influenceScore = Math.floor((followers / 1000) * engagement * authenticity);

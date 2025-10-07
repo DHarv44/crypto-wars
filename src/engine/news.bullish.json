@@ -1,0 +1,947 @@
+[
+  {
+    "id": "bull_high_1",
+    "template": "{SYMBOL} announces partnership with Fortune 500 company!",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "partnership"
+  },
+  {
+    "id": "bull_high_2",
+    "template": "BREAKING: Major exchange listing {SYMBOL} this week",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "exchange"
+  },
+  {
+    "id": "bull_high_3",
+    "template": "{SYMBOL} dev team burns 30% of total supply!",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "tokenomics"
+  },
+  {
+    "id": "bull_high_4",
+    "template": "Whale wallet accumulates $5M worth of {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "whale"
+  },
+  {
+    "id": "bull_high_5",
+    "template": "{SYMBOL} passes major audit with flying colors",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "audit"
+  },
+  {
+    "id": "bull_high_6",
+    "template": "Institutional investors buying {SYMBOL} - sources confirm",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "institutional"
+  },
+  {
+    "id": "bull_high_7",
+    "template": "{SYMBOL} announces buyback program worth $10M",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "buyback"
+  },
+  {
+    "id": "bull_high_8",
+    "template": "Elon Musk tweets about {SYMBOL} - engagement explodes",
+    "sentiment": "bullish",
+    "weight": 95,
+    "category": "celebrity"
+  },
+  {
+    "id": "bull_high_9",
+    "template": "{SYMBOL} staking APY increased to 500%!",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "staking"
+  },
+  {
+    "id": "bull_high_10",
+    "template": "SEC hints at approving {SYMBOL} ETF application",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "regulation"
+  },
+  {
+    "id": "bull_high_11",
+    "template": "{SYMBOL} TVL crosses $100M milestone",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "tvl"
+  },
+  {
+    "id": "bull_high_12",
+    "template": "Major gaming studio integrating {SYMBOL} as in-game currency",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "gaming"
+  },
+  {
+    "id": "bull_high_13",
+    "template": "{SYMBOL} halts trading - announcement imminent",
+    "sentiment": "bullish",
+    "weight": 65,
+    "category": "announcement"
+  },
+  {
+    "id": "bull_high_14",
+    "template": "Venture capital firm leads $50M funding round for {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "funding"
+  },
+  {
+    "id": "bull_high_15",
+    "template": "{SYMBOL} community vote passes: implement deflationary mechanism",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "governance"
+  },
+  {
+    "id": "bull_high_16",
+    "template": "Breaking: {SYMBOL} beta testing shows 10x scalability improvement",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "tech"
+  },
+  {
+    "id": "bull_high_17",
+    "template": "{SYMBOL} strategic reserve announced by small nation",
+    "sentiment": "bullish",
+    "weight": 95,
+    "category": "adoption"
+  },
+  {
+    "id": "bull_high_18",
+    "template": "Top crypto influencer goes all-in on {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "influencer"
+  },
+  {
+    "id": "bull_high_19",
+    "template": "{SYMBOL} supply shock imminent as exchanges run dry",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "supply"
+  },
+  {
+    "id": "bull_high_20",
+    "template": "Patent filed: {SYMBOL} blockchain tech breakthrough",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "patent"
+  },
+  {
+    "id": "bull_high_21",
+    "template": "{SYMBOL} mainnet launch date confirmed - Q1 2025",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "launch"
+  },
+  {
+    "id": "bull_high_22",
+    "template": "Payment processor adds {SYMBOL} - millions of merchants now accept",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "payment"
+  },
+  {
+    "id": "bull_high_23",
+    "template": "{SYMBOL} treasury buys back tokens at premium",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "buyback"
+  },
+  {
+    "id": "bull_high_24",
+    "template": "Hedge fund allocates 5% portfolio to {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "institutional"
+  },
+  {
+    "id": "bull_high_25",
+    "template": "{SYMBOL} airdrops $2M to holders - rewards loyalty",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "airdrop"
+  },
+  {
+    "id": "bull_low_1",
+    "template": "{SYMBOL} mentioned in top crypto podcast",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "media"
+  },
+  {
+    "id": "bull_low_2",
+    "template": "Community sentiment turning bullish on {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "sentiment"
+  },
+  {
+    "id": "bull_low_3",
+    "template": "{SYMBOL} GitHub activity increases 50% this week",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "development"
+  },
+  {
+    "id": "bull_low_4",
+    "template": "Small holders accumulating {SYMBOL} - on-chain data shows",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "onchain"
+  },
+  {
+    "id": "bull_low_5",
+    "template": "{SYMBOL} trending on crypto Twitter",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "social"
+  },
+  {
+    "id": "bull_low_6",
+    "template": "New {SYMBOL} meme goes viral - community engagement up",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "meme"
+  },
+  {
+    "id": "bull_low_7",
+    "template": "{SYMBOL} daily active users hit new high",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "users"
+  },
+  {
+    "id": "bull_low_8",
+    "template": "Trading volume spike on {SYMBOL} - breakout incoming?",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "volume"
+  },
+  {
+    "id": "bull_low_9",
+    "template": "{SYMBOL} holds key support level despite market dump",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "technical"
+  },
+  {
+    "id": "bull_low_10",
+    "template": "Reddit community creates {SYMBOL} appreciation thread",
+    "sentiment": "bullish",
+    "weight": 15,
+    "category": "community"
+  },
+  {
+    "id": "bull_low_11",
+    "template": "{SYMBOL} team hints at surprise announcement next week",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "tease"
+  },
+  {
+    "id": "bull_low_12",
+    "template": "YouTube influencer adds {SYMBOL} to portfolio",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "influencer"
+  },
+  {
+    "id": "bull_low_13",
+    "template": "{SYMBOL} completes minor protocol upgrade successfully",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "upgrade"
+  },
+  {
+    "id": "bull_low_14",
+    "template": "Local meetup discusses {SYMBOL} use cases",
+    "sentiment": "bullish",
+    "weight": 10,
+    "category": "event"
+  },
+  {
+    "id": "bull_low_15",
+    "template": "{SYMBOL} ambassador program launches - recruitment open",
+    "sentiment": "bullish",
+    "weight": 15,
+    "category": "marketing"
+  },
+  {
+    "id": "bull_low_16",
+    "template": "TikTok trend features {SYMBOL} - Gen Z interest growing",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "social"
+  },
+  {
+    "id": "bull_low_17",
+    "template": "{SYMBOL} wallet downloads increase 20%",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "adoption"
+  },
+  {
+    "id": "bull_low_18",
+    "template": "Developer builds popular tool using {SYMBOL} API",
+    "sentiment": "bullish",
+    "weight": 15,
+    "category": "ecosystem"
+  },
+  {
+    "id": "bull_low_19",
+    "template": "{SYMBOL} mentioned in university blockchain course",
+    "sentiment": "bullish",
+    "weight": 10,
+    "category": "education"
+  },
+  {
+    "id": "bull_low_20",
+    "template": "Small business accepts {SYMBOL} as payment option",
+    "sentiment": "bullish",
+    "weight": 15,
+    "category": "adoption"
+  },
+  {
+    "id": "bull_low_21",
+    "template": "{SYMBOL} liquidity pool APY rises to 80%",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "defi"
+  },
+  {
+    "id": "bull_low_22",
+    "template": "Community-run {SYMBOL} newsletter launches",
+    "sentiment": "bullish",
+    "weight": 10,
+    "category": "community"
+  },
+  {
+    "id": "bull_low_23",
+    "template": "{SYMBOL} stress test passes with 100K TPS",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "tech"
+  },
+  {
+    "id": "bull_low_24",
+    "template": "Discord server for {SYMBOL} crosses 10K members",
+    "sentiment": "bullish",
+    "weight": 15,
+    "category": "community"
+  },
+  {
+    "id": "bull_low_25",
+    "template": "{SYMBOL} bug bounty program announced",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "security"
+  },
+  {
+    "id": "defi_bull_1",
+    "template": "{SYMBOL} TVL surges past $1 billion - new DeFi king?",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "defi"
+  },
+  {
+    "id": "defi_bull_2",
+    "template": "{SYMBOL} yields hit 2000% APY - unsustainable or genius?",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "defi"
+  },
+  {
+    "id": "defi_bull_3",
+    "template": "{SYMBOL} flash loan feature revolutionizes DeFi",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "defi"
+  },
+  {
+    "id": "defi_bull_4",
+    "template": "{SYMBOL} integrates with top 5 DEXs",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "defi"
+  },
+  {
+    "id": "defi_bull_5",
+    "template": "{SYMBOL} cross-chain bridge goes live",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "defi"
+  },
+  {
+    "id": "meme_bull_1",
+    "template": "{SYMBOL} meme goes viral on TikTok - 50M views",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "meme"
+  },
+  {
+    "id": "meme_bull_2",
+    "template": "{SYMBOL} celebrity endorsement leaked",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "meme"
+  },
+  {
+    "id": "meme_bull_3",
+    "template": "{SYMBOL} community launches global meme contest",
+    "sentiment": "bullish",
+    "weight": 60,
+    "category": "meme"
+  },
+  {
+    "id": "meme_bull_4",
+    "template": "{SYMBOL} official mascot NFT collection sells out",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "meme"
+  },
+  {
+    "id": "meme_bull_5",
+    "template": "{SYMBOL} trending #1 on crypto Twitter",
+    "sentiment": "bullish",
+    "weight": 65,
+    "category": "meme"
+  },
+  {
+    "id": "nft_bull_1",
+    "template": "{SYMBOL} NFT collection floor price hits 10 ETH",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "nft"
+  },
+  {
+    "id": "nft_bull_2",
+    "template": "{SYMBOL} announces NFT staking rewards",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "nft"
+  },
+  {
+    "id": "nft_bull_3",
+    "template": "{SYMBOL} partners with major NFT marketplace",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "nft"
+  },
+  {
+    "id": "nft_bull_4",
+    "template": "{SYMBOL} celebrity buys rare NFT for $1M",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "nft"
+  },
+  {
+    "id": "nft_bull_5",
+    "template": "{SYMBOL} NFT utility expansion announced",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "nft"
+  },
+  {
+    "id": "layer1_bull_1",
+    "template": "{SYMBOL} mainnet achieves 100K TPS",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "layer1"
+  },
+  {
+    "id": "layer1_bull_2",
+    "template": "{SYMBOL} validator count hits all-time high",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "layer1"
+  },
+  {
+    "id": "layer1_bull_3",
+    "template": "{SYMBOL} gas fees drop to $0.01",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "layer1"
+  },
+  {
+    "id": "layer1_bull_4",
+    "template": "{SYMBOL} ecosystem grows to 1000+ dApps",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "layer1"
+  },
+  {
+    "id": "layer1_bull_5",
+    "template": "{SYMBOL} zero-knowledge proof breakthrough",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "layer1"
+  },
+  {
+    "id": "multi_bull_1",
+    "template": "All privacy coins rally as demand surges",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "sector"
+  },
+  {
+    "id": "multi_bull_2",
+    "template": "DeFi summer 2.0? Yields across sector explode",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "sector"
+  },
+  {
+    "id": "multi_bull_3",
+    "template": "Layer-2 solutions gain massive adoption",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "sector"
+  },
+  {
+    "id": "multi_bull_4",
+    "template": "Gaming tokens pump as metaverse hype returns",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "sector"
+  },
+  {
+    "id": "multi_bull_5",
+    "template": "Institutional money flows into altcoins",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "sector"
+  },
+  {
+    "id": "player_bull_1",
+    "template": "Mystery whale wallet accumulating {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "player"
+  },
+  {
+    "id": "player_bull_2",
+    "template": "Crypto trader makes $10M on {SYMBOL} - shares strategy",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "player"
+  },
+  {
+    "id": "player_bull_3",
+    "template": "Smart money flows into {SYMBOL} - on-chain data",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "player"
+  },
+  {
+    "id": "player_bull_4",
+    "template": "Influencer portfolio reveals {SYMBOL} as top holding",
+    "sentiment": "bullish",
+    "weight": 65,
+    "category": "player"
+  },
+  {
+    "id": "player_bull_5",
+    "template": "Anonymous trader's {SYMBOL} call goes viral",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "player"
+  },
+  {
+    "id": "arc_1_day3",
+    "template": "{SYMBOL} exchange listing confirmed - Binance next week",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "arc"
+  },
+  {
+    "id": "arc_2_day1",
+    "template": "{SYMBOL} team teases major announcement Monday",
+    "sentiment": "bullish",
+    "weight": 60,
+    "category": "arc"
+  },
+  {
+    "id": "arc_3_day2",
+    "template": "{SYMBOL} passes audit with minor warnings",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "arc"
+  },
+  {
+    "id": "arc_4_day1",
+    "template": "{SYMBOL} dev activity spikes - upgrade coming?",
+    "sentiment": "bullish",
+    "weight": 60,
+    "category": "arc"
+  },
+  {
+    "id": "arc_4_day4",
+    "template": "{SYMBOL} V2 launches with revolutionary features",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "arc"
+  },
+  {
+    "id": "arc_5_day3",
+    "template": "{SYMBOL} vote passes - major tokenomics change approved",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "arc"
+  },
+  {
+    "id": "bull_high_26",
+    "template": "{SYMBOL} whales accumulate as price consolidates",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "whale"
+  },
+  {
+    "id": "bull_high_27",
+    "template": "{SYMBOL} short squeeze incoming - data suggests",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "technical"
+  },
+  {
+    "id": "bull_high_28",
+    "template": "{SYMBOL} derivatives volume explodes",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "volume"
+  },
+  {
+    "id": "bull_high_29",
+    "template": "{SYMBOL} exchange inflows drop - bullish signal",
+    "sentiment": "bullish",
+    "weight": 65,
+    "category": "onchain"
+  },
+  {
+    "id": "bull_high_30",
+    "template": "{SYMBOL} funding rate turns massively positive",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "derivatives"
+  },
+  {
+    "id": "bull_low_26",
+    "template": "{SYMBOL} Reddit army forming - coordinated buy?",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "social"
+  },
+  {
+    "id": "bull_low_27",
+    "template": "{SYMBOL} technical analysis shows golden cross",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "technical"
+  },
+  {
+    "id": "bull_low_28",
+    "template": "{SYMBOL} accumulation phase detected by analysts",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "analyst"
+  },
+  {
+    "id": "bull_low_29",
+    "template": "{SYMBOL} Telegram group hits 50K members",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "community"
+  },
+  {
+    "id": "bull_low_30",
+    "template": "{SYMBOL} hodlers diamond hands - sell pressure low",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "sentiment"
+  },
+  {
+    "id": "gaming_bull_1",
+    "template": "{SYMBOL} play-to-earn game hits 1M players",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "gaming"
+  },
+  {
+    "id": "gaming_bull_2",
+    "template": "{SYMBOL} esports tournament announces $5M prize pool",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "gaming"
+  },
+  {
+    "id": "gaming_bull_3",
+    "template": "{SYMBOL} game economy generates $100M revenue",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "gaming"
+  },
+  {
+    "id": "gaming_bull_4",
+    "template": "{SYMBOL} VR integration announced",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "gaming"
+  },
+  {
+    "id": "gaming_bull_5",
+    "template": "{SYMBOL} mobile game tops app store charts",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "gaming"
+  },
+  {
+    "id": "privacy_bull_1",
+    "template": "{SYMBOL} privacy tech passes government audit",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "privacy"
+  },
+  {
+    "id": "privacy_bull_2",
+    "template": "{SYMBOL} zero-knowledge proofs gain adoption",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "privacy"
+  },
+  {
+    "id": "privacy_bull_3",
+    "template": "{SYMBOL} privacy mixer usage hits ATH",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "privacy"
+  },
+  {
+    "id": "privacy_bull_4",
+    "template": "{SYMBOL} encrypted messaging integration live",
+    "sentiment": "bullish",
+    "weight": 65,
+    "category": "privacy"
+  },
+  {
+    "id": "privacy_bull_5",
+    "template": "{SYMBOL} privacy coalition formed with 10 projects",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "privacy"
+  },
+  {
+    "id": "stablecoin_bull_1",
+    "template": "{SYMBOL} stablecoin maintains perfect peg for 365 days",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "stablecoin"
+  },
+  {
+    "id": "stablecoin_bull_2",
+    "template": "{SYMBOL} reserves audit shows 110% backing",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "stablecoin"
+  },
+  {
+    "id": "stablecoin_bull_3",
+    "template": "{SYMBOL} stablecoin adoption by payment processors",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "stablecoin"
+  },
+  {
+    "id": "stablecoin_bull_4",
+    "template": "{SYMBOL} treasury grows to $10 billion",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "stablecoin"
+  },
+  {
+    "id": "stablecoin_bull_5",
+    "template": "{SYMBOL} regulatory approval in 3 countries",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "stablecoin"
+  },
+  {
+    "id": "metaverse_bull_1",
+    "template": "{SYMBOL} virtual land sales hit $50M",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "metaverse"
+  },
+  {
+    "id": "metaverse_bull_2",
+    "template": "{SYMBOL} metaverse concert draws 100K attendees",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "metaverse"
+  },
+  {
+    "id": "metaverse_bull_3",
+    "template": "{SYMBOL} fashion brands open virtual stores",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "metaverse"
+  },
+  {
+    "id": "metaverse_bull_4",
+    "template": "{SYMBOL} AR features launch - Pokemon GO style",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "metaverse"
+  },
+  {
+    "id": "metaverse_bull_5",
+    "template": "{SYMBOL} metaverse economy hits $1B GDP",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "metaverse"
+  },
+  {
+    "id": "bull_final_1",
+    "template": "{SYMBOL} breaks all-time high - new price discovery",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "price"
+  },
+  {
+    "id": "bull_final_2",
+    "template": "{SYMBOL} institutional custody solution launches",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "institutional"
+  },
+  {
+    "id": "bull_final_3",
+    "template": "{SYMBOL} market cap enters top 10",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "marketcap"
+  },
+  {
+    "id": "bull_final_4",
+    "template": "{SYMBOL} derivatives launch on CME",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "derivatives"
+  },
+  {
+    "id": "bull_final_5",
+    "template": "{SYMBOL} adopted by Fortune 100 company",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "adoption"
+  },
+  {
+    "id": "bull_final_6",
+    "template": "{SYMBOL} central bank adds to reserves",
+    "sentiment": "bullish",
+    "weight": 95,
+    "category": "institutional"
+  },
+  {
+    "id": "bull_final_7",
+    "template": "{SYMBOL} transaction volume hits $1B daily",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "volume"
+  },
+  {
+    "id": "bull_final_8",
+    "template": "{SYMBOL} interoperability bridge connects 10 chains",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "tech"
+  },
+  {
+    "id": "bull_final_9",
+    "template": "{SYMBOL} regulatory clarity achieved - legal tender",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "regulation"
+  },
+  {
+    "id": "bull_final_10",
+    "template": "{SYMBOL} mass exodus from exchanges - cold storage trend",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "onchain"
+  },
+  {
+    "id": "bull_final_11",
+    "template": "{SYMBOL} hash rate doubles - network security surge",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "mining"
+  },
+  {
+    "id": "bull_final_12",
+    "template": "{SYMBOL} academic research validates technology",
+    "sentiment": "bullish",
+    "weight": 65,
+    "category": "research"
+  },
+  {
+    "id": "bull_final_13",
+    "template": "{SYMBOL} insurance products now available",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "defi"
+  },
+  {
+    "id": "bull_final_14",
+    "template": "{SYMBOL} carbon-negative mining achieved",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "sustainability"
+  },
+  {
+    "id": "bull_final_15",
+    "template": "{SYMBOL} developer grant program launches with $100M",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "ecosystem"
+  },
+  {
+    "id": "bull_low_final_1",
+    "template": "{SYMBOL} price action showing strength",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "technical"
+  },
+  {
+    "id": "bull_low_final_2",
+    "template": "{SYMBOL} buy pressure increasing - order books",
+    "sentiment": "bullish",
+    "weight": 30,
+    "category": "orderbook"
+  },
+  {
+    "id": "bull_low_final_3",
+    "template": "{SYMBOL} weekend pump incoming - traders say",
+    "sentiment": "bullish",
+    "weight": 20,
+    "category": "speculation"
+  },
+  {
+    "id": "bull_low_final_4",
+    "template": "{SYMBOL} accumulation addresses increase",
+    "sentiment": "bullish",
+    "weight": 25,
+    "category": "onchain"
+  }
+]

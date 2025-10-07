@@ -1,7 +1,6 @@
 import { Stack, Title, Text, Paper, Box, Button, Radio, Group, LoadingOverlay } from '@mantine/core';
 import { useState } from 'react';
 import { useStore } from '../../stores/rootStore';
-import { savePlayerProfile, getActiveProfileId } from '../../utils/storage';
 import { backfillProfile } from '../../data/backfill';
 import type { Vibe } from './onboardingSlice';
 
@@ -27,7 +26,7 @@ const VIBES: Array<{ id: Vibe; name: string; description: string; projection: st
 ];
 
 export default function Screen3Vibe() {
-  const { vibe, setVibe, setScreen, handle, alias, title, archetype, toggle, completeOnboarding, initGame, seed } =
+  const { vibe, setVibe, setScreen, handle, alias, title, archetype, toggle, completeOnboarding, initGame, seed, addArticles, saveGame } =
     useStore();
   const [isBackfilling, setIsBackfilling] = useState(false);
 
@@ -35,15 +34,6 @@ export default function Screen3Vibe() {
     if (!vibe) return;
 
     setIsBackfilling(true);
-
-    // Save player profile to localStorage
-    savePlayerProfile({
-      handle,
-      alias,
-      title,
-      archetype: archetype || 'meme-mogul',
-      vibe,
-    });
 
     // Apply stat modifiers based on selections
     const store = useStore.getState();
@@ -102,20 +92,56 @@ export default function Screen3Vibe() {
         break;
     }
 
+    // Save profile info to state
+    const profileId = `profile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    store.setProfile({
+      id: profileId,
+      handle,
+      alias,
+      title,
+      archetype: archetype || 'meme-mogul',
+      vibe,
+    });
+
     // Complete onboarding and init game
     completeOnboarding();
-    initGame();
+    await initGame();
 
-    // Backfill historical chart data
+    // Backfill historical chart data (use actual profile ID)
     try {
-      const profileId = getActiveProfileId();
-      if (profileId) {
-        console.log('Starting historical data backfill...');
-        await backfillProfile(profileId, seed);
-        console.log('Backfill complete!');
+      console.log('[Screen3Vibe] Starting historical data backfill...');
+      const { newsEvents, priceHistory } = await backfillProfile(profileId, seed);
+      console.log('[Screen3Vibe] Backfill complete!', newsEvents.length, 'news events');
+
+      // Convert GeneratedEvent to NewsArticle format and add to newsSlice
+      const newsArticles = newsEvents.map((event: any, index: number) => ({
+        id: `backfill_${event.assetId}_${event.day}_${index}`,
+        day: event.day,
+        assetId: event.assetId,
+        assetSymbol: event.assetSymbol,
+        headline: event.headline,
+        sentiment: event.impact === 'positive' ? 'bullish' as const : event.impact === 'negative' ? 'bearish' as const : 'neutral' as const,
+        weight: Math.abs(event.severity * 100), // Convert severity to 0-100 weight
+        category: 'general',
+        isFake: false,
+        impactRealized: true,
+      }));
+
+      console.log('[Screen3Vibe] Adding', newsArticles.length, 'news articles to newsSlice');
+      addArticles(newsArticles);
+
+      // Populate assets with historical price data
+      console.log('[Screen3Vibe] Populating assets with', Object.keys(priceHistory).length, 'price histories');
+      for (const [assetId, candles] of Object.entries(priceHistory)) {
+        store.setAssetPriceHistory(assetId, candles);
       }
+
+      // Save game again to persist the news articles and price history
+      console.log('[Screen3Vibe] Saving game with news articles and price history...');
+      await saveGame();
+      console.log('[Screen3Vibe] Game saved with news articles and price history!');
     } catch (error) {
-      console.error('Backfill error:', error);
+      console.error('[Screen3Vibe] Backfill error:', error);
     }
 
     setIsBackfilling(false);

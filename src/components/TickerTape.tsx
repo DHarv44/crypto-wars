@@ -2,9 +2,11 @@ import { Paper, Group, Text } from '@mantine/core';
 import { useStore } from '../stores/rootStore';
 import { formatPercent, getChangeColor } from '../utils/format';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function TickerTape() {
   const { assets, list } = useStore();
+  const navigate = useNavigate();
 
   const tickers = useMemo(() => {
     return list
@@ -17,6 +19,7 @@ export default function TickerTape() {
         const change = ((asset.price - oldPrice) / oldPrice) * 100;
 
         return {
+          id: asset.id,
           symbol: asset.symbol,
           price: asset.price,
           change,
@@ -31,12 +34,21 @@ export default function TickerTape() {
         style={{
           display: 'flex',
           gap: '2rem',
-          animation: 'scroll 30s linear infinite',
+          animation: 'tickerScroll 21s linear infinite',
         }}
       >
         {/* Duplicate for seamless loop */}
-        {[...tickers, ...tickers, ...tickers].map((ticker, idx) => (
-          <Group key={idx} gap="xs" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+        {[...tickers, ...tickers].map((ticker, idx) => (
+          <Group
+            key={idx}
+            gap="xs"
+            style={{
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate(`/symbol/${ticker.symbol}`)}
+          >
             <Text size="sm" fw={700} c="terminal.5" ff="monospace">
               {ticker.symbol}
             </Text>
@@ -50,12 +62,12 @@ export default function TickerTape() {
         ))}
       </div>
       <style>{`
-        @keyframes scroll {
+        @keyframes tickerScroll {
           0% {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(-33.333%);
+            transform: translateX(-50%);
           }
         }
       `}</style>

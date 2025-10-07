@@ -10,7 +10,16 @@
       "Bash(git commit:*)",
       "Bash(git branch:*)",
       "Bash(git remote add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(node:*)",
+      "Bash(npx tsx watch:*)",
+      "Bash(curl http://localhost:3001/api/ai/compose -X POST -H \"Content-Type: application/json\" -d \"{\"\"vibe\"\":\"\"bullish\"\",\"\"context\"\":\"\"Day 1, portfolio: BTC, ETH\"\"}\")",
+      "Bash(curl -s http://localhost:5174/market)",
+      "Bash(npm run dev:client:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

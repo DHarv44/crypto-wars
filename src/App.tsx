@@ -4,31 +4,45 @@ import AppShell from './components/AppShell';
 import OnboardingFlow from './features/onboarding/OnboardingFlow';
 import { useStore } from './stores/rootStore';
 import { useEffect, useState } from 'react';
-import { initCache } from './data/storageCache';
-import { hasSavedGame } from './utils/storage';
+import { hasSavedGame } from './utils/persistence';
 import { Loader, Center } from '@mantine/core';
+import { initCache } from './data/storageCache';
 
 function App() {
-  const { hasCompletedOnboarding, completeOnboarding } = useStore();
-  const [cacheReady, setCacheReady] = useState(false);
+  const { hasCompletedOnboarding, completeOnboarding, loadGame } = useStore();
+  const [isReady, setIsReady] = useState(false);
 
-  // Initialize storage cache on mount
+  // Initialize app on mount
   useEffect(() => {
     const initialize = async () => {
-      await initCache();
-      setCacheReady(true);
+      console.log('[App] initialize START');
 
-      // If there's an active session game, skip onboarding
-      if (hasSavedGame() && !hasCompletedOnboarding) {
-        completeOnboarding();
+      // Initialize cache first
+      await initCache();
+
+      // Check if there's a saved game
+      const hasSaved = await hasSavedGame();
+      console.log('[App] hasSavedGame:', hasSaved);
+
+      if (hasSaved) {
+        // Load existing game state
+        await loadGame();
+
+        // Mark onboarding as complete
+        if (!hasCompletedOnboarding) {
+          completeOnboarding();
+        }
       }
+
+      setIsReady(true);
+      console.log('[App] initialize COMPLETE');
     };
 
     initialize();
   }, []);
 
-  // Show loading until cache is ready
-  if (!cacheReady) {
+  // Show loading until ready
+  if (!isReady) {
     return (
       <Center h="100vh">
         <Loader color="terminal.5" />

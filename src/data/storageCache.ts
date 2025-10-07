@@ -28,6 +28,8 @@ export async function initCache(): Promise<void> {
     cache.sessionGame = await getSetting<SavedGame>('sessionGame');
     cache.initialized = true;
     console.log('[StorageCache] Initialized from IndexedDB');
+    console.log('[StorageCache] activeProfileId:', cache.activeProfileId);
+    console.log('[StorageCache] sessionGame:', cache.sessionGame ? `Found (has gameState: ${!!cache.sessionGame.gameState})` : 'NULL');
   } catch (error) {
     console.error('[StorageCache] Failed to initialize:', error);
     cache.initialized = true; // Mark as initialized even on error
@@ -64,6 +66,7 @@ export function getCachedSessionGame(): SavedGame | null {
   if (!cache.initialized) {
     console.warn('[StorageCache] Cache not initialized, returning null');
   }
+  console.log('[getCachedSessionGame] Returning:', cache.sessionGame ? `SavedGame (has gameState: ${!!cache.sessionGame.gameState}, assets in gameState: ${cache.sessionGame.gameState?.assets ? Object.keys(cache.sessionGame.gameState.assets).length : 'N/A'})` : 'NULL');
   return cache.sessionGame;
 }
 
@@ -72,11 +75,15 @@ export function getCachedSessionGame(): SavedGame | null {
  */
 export function setCachedSessionGame(game: SavedGame | null): void {
   cache.sessionGame = game;
+  console.log('[setCachedSessionGame] Called with:', game ? `SavedGame (has gameState: ${!!game.gameState})` : 'NULL');
   // Persist to IndexedDB in background
   if (game) {
-    setSetting('sessionGame', game).catch(err =>
-      console.error('[StorageCache] Failed to persist sessionGame:', err)
-    );
+    console.log('[setCachedSessionGame] Persisting to IndexedDB...');
+    setSetting('sessionGame', game)
+      .then(() => console.log('[setCachedSessionGame] Successfully persisted to IndexedDB'))
+      .catch(err =>
+        console.error('[StorageCache] Failed to persist sessionGame:', err)
+      );
   }
 }
 

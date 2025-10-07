@@ -8,13 +8,13 @@ interface SkipDaysModalProps {
 }
 
 export default function SkipDaysModal({ opened, onClose }: SkipDaysModalProps) {
-  const { skipDays, saveToSession } = useStore();
+  const { skipDays, saveGame } = useStore();
   const [numDays, setNumDays] = useState<number | string>(1);
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     if (typeof numDays === 'number' && numDays > 0) {
       skipDays(numDays);
-      saveToSession();
+      await saveGame();
       setNumDays(1);
       onClose();
     }

@@ -17,6 +17,7 @@ export interface MarketSlice {
   getAsset: (id: string) => Asset | undefined;
   setFilter: (key: keyof MarketSlice['filters'], value: unknown) => void;
   addAsset: (asset: Asset) => void;
+  setAssetPriceHistory: (assetId: string, priceHistory: any[]) => void;
 
   // Selectors (derived)
   getFilteredAssets: () => Asset[];
@@ -33,6 +34,7 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
   },
 
   loadSeed: () => {
+    console.log('[loadSeed] STARTING - seedData length:', seedData.length);
     const assets: Record<string, Asset> = {};
     const list: string[] = [];
 
@@ -48,7 +50,9 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
       list.push(asset.id);
     }
 
+    console.log('[loadSeed] SETTING - assets:', Object.keys(assets).length, 'list:', list.length);
     set({ assets, list });
+    console.log('[loadSeed] DONE');
   },
 
   applyTickUpdates: (updates: Record<string, Partial<Asset>>) => {
@@ -59,7 +63,7 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
           newAssets[id] = { ...newAssets[id], ...update };
         }
       }
-      return { assets: newAssets };
+      return { ...state, assets: newAssets };
     });
   },
 
@@ -77,6 +81,18 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
     set((state) => ({
       assets: { ...state.assets, [asset.id]: asset },
       list: [...state.list, asset.id],
+    }));
+  },
+
+  setAssetPriceHistory: (assetId: string, priceHistory: any[]) => {
+    set((state) => ({
+      assets: {
+        ...state.assets,
+        [assetId]: {
+          ...state.assets[assetId],
+          priceHistory,
+        },
+      },
     }));
   },
 

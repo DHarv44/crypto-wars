@@ -345,9 +345,16 @@ function generate1MData(template: AssetTemplate, seed: number, dailyData: OHLC[]
 
 /**
  * Backfill all historical data for a profile
+ * Returns: { news events for ticker, price history per asset }
  */
-export async function backfillProfile(profileId: string, seed: number): Promise<void> {
+export async function backfillProfile(profileId: string, seed: number): Promise<{
+  newsEvents: GeneratedEvent[];
+  priceHistory: Record<string, OHLC[]>;
+}> {
   console.log(`[Backfill] Starting for profile ${profileId} with seed ${seed}`);
+
+  const allNewsEvents: GeneratedEvent[] = [];
+  const priceHistory: Record<string, OHLC[]> = {};
 
   for (const template of ASSET_TEMPLATES) {
     console.log(`[Backfill] Processing ${template.symbol}...`);
@@ -356,43 +363,46 @@ export async function backfillProfile(profileId: string, seed: number): Promise<
     const events = generateEvents(template, -365, 0, seed);
     console.log(`[Backfill] Generated ${events.length} events for ${template.symbol}`);
 
-    // Generate 5Y weekly data
-    const weekly5y = generate5YData(template, seed);
-    await storeTimeSeries({
-      profileId,
-      assetId: template.id,
-      resolution: '5Y',
-      data: weekly5y,
-      events: events.filter((e) => e.day <= -365), // Only events from 5Y timeframe
-      timestamp: Date.now(),
-    });
+    // Generate additional news specifically for the last 5 days (2-3 articles per asset)
+    const recentNewsCount = Math.floor(initRNG(seed + template.symbol.charCodeAt(0)).range(2, 4));
+    const recentRng = initRNG(seed + template.symbol.charCodeAt(0) + 999);
 
-    // Generate 1Y daily data
+    for (let i = 0; i < recentNewsCount; i++) {
+      const day = Math.floor(recentRng.range(-5, 1)); // Days -5 to 0
+      const newsTemplate = newsTemplates[Math.floor(recentRng.range(0, newsTemplates.length))];
+      const event = fillNewsTemplate(template, newsTemplate as NewsTemplate, recentRng);
+
+      if (event) {
+        events.push({ ...event, day });
+        allNewsEvents.push({
+          ...event,
+          day,
+          assetId: template.id,
+          assetSymbol: template.symbol
+        });
+      }
+    }
+
+    console.log(`[Backfill] Generated ${recentNewsCount} recent news articles for ${template.symbol}`);
+
+    // Generate 1Y daily data (this becomes the historical priceHistory)
     const daily1y = generate1YData(template, seed, events);
-    await storeTimeSeries({
-      profileId,
-      assetId: template.id,
-      resolution: '1Y',
-      data: daily1y,
-      events: events.filter((e) => e.day > -365 && e.day <= 0),
-      timestamp: Date.now(),
-    });
 
-    // Generate 1M hourly data
-    const hourly1m = generate1MData(template, seed, daily1y);
-    await storeTimeSeries({
-      profileId,
-      assetId: template.id,
-      resolution: '1M',
-      data: hourly1m,
-      events: events.filter((e) => e.day > -30 && e.day <= 0),
-      timestamp: Date.now(),
-    });
+    // Store as PriceCandle format (convert OHLC to PriceCandle with tick)
+    priceHistory[template.id] = daily1y.map((ohlc, index) => ({
+      tick: index,
+      day: ohlc.day,
+      open: ohlc.open,
+      high: ohlc.high,
+      low: ohlc.low,
+      close: ohlc.close,
+    }));
 
-    console.log(`[Backfill] Completed ${template.symbol}`);
+    console.log(`[Backfill] Completed ${template.symbol} - ${priceHistory[template.id].length} candles`);
   }
 
-  console.log(`[Backfill] Profile ${profileId} complete!`);
+  console.log(`[Backfill] Profile ${profileId} complete! Generated ${allNewsEvents.length} news articles for ticker`);
+  return { newsEvents: allNewsEvents, priceHistory };
 }
 
 /**

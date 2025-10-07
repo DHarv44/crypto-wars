@@ -38,6 +38,28 @@ export interface LPPosition {
   depositedAtTick: number;
 }
 
+export interface Trade {
+  id: string;
+  tick: number;
+  timestamp: number;
+  type: 'buy' | 'sell';
+  assetId: string;
+  assetSymbol: string;
+  units: number;
+  pricePerUnit: number;
+  totalUSD: number;
+  fees?: number;
+  realizedPnL?: number; // For sells
+}
+
+export interface PositionCostBasis {
+  assetId: string;
+  totalUnits: number;
+  totalCostUSD: number;
+  avgPrice: number;
+  trades: string[]; // Trade IDs
+}
+
 export interface PlayerState {
   cashUSD: number;
   netWorthUSD: number;
@@ -49,6 +71,13 @@ export interface PlayerState {
   holdings: Record<string, number>; // assetId -> units
   lpPositions: LPPosition[];
   blacklisted: boolean;
+
+  // P&L tracking
+  trades: Trade[];
+  costBasis: Record<string, PositionCostBasis>; // assetId -> cost basis
+  realizedPnL: number; // Lifetime realized profit/loss
+  initialNetWorth: number; // Starting net worth for ROI calc
+  netWorthHistory: Array<{ tick: number; value: number }>; // For charts
 }
 
 export type OperationType = 'pump' | 'wash' | 'audit' | 'bribe';
@@ -123,4 +152,18 @@ export interface Replay {
   tick: number;
   events: GameEvent[];
   causeChain: string[];
+}
+
+export interface NewsArticle {
+  id: string;
+  day: number;
+  assetId: string;
+  assetSymbol: string;
+  headline: string;
+  sentiment: 'bullish' | 'bearish' | 'neutral';
+  weight: number; // 0-100
+  category: string;
+  isFake: boolean;
+  debunkedDay?: number; // When fake news was revealed
+  impactRealized: boolean; // Did it actually move the price?
 }

@@ -120,7 +120,7 @@ export function getActiveProfileId(): string | null {
 /**
  * Set active profile ID (sync cache + async persist)
  */
-function setActiveProfileId(id: string): void {
+export function setActiveProfileId(id: string): void {
   setCachedActiveProfileId(id);
 }
 
@@ -191,16 +191,19 @@ export function saveGame(data: Partial<SavedGame>): void {
 }
 
 /**
- * Save complete game state from Zustand store (sync cache + async persist)
- * Call this after every CRUD operation
+ * Save complete game state from Zustand store (ASYNC version - waits for completion)
  */
-export function saveGameState(state: any): void {
+export async function saveGameStateAsync(state: any): Promise<void> {
   try {
-    const existing = loadGame();
+    let existing = loadGame();
+    console.log('[saveGameStateAsync] loadGame() returned:', existing ? `SavedGame (id: ${existing.playerProfile?.id})` : 'NULL');
+
     if (!existing) {
-      console.warn('No active game to save state for');
+      console.warn('[saveGameStateAsync] No saved game found, cannot save game state');
       return;
     }
+
+    console.log('[saveGameStateAsync] Capturing state - assets:', Object.keys(state.assets || {}).length, 'list:', (state.list || []).length);
 
     const gameState = {
       // Engine
@@ -226,6 +229,8 @@ export function saveGameState(state: any): void {
 
       // Market
       assets: state.assets,
+      list: state.list,
+      filters: state.filters,
 
       // Influencer
       influencer: {
@@ -234,11 +239,110 @@ export function saveGameState(state: any): void {
         authenticity: state.authenticity,
       },
 
+      // Social
+      social: state.social,
+      posts: state.posts,
+
+      // Events
+      events: state.events,
+
       // Operations
       activeOps: state.activeOps,
 
       // Offers
       activeOffers: state.activeOffers,
+
+      // Unlocks
+      unlockedFeatures: state.unlockedFeatures,
+    };
+
+    const updated = {
+      ...existing,
+      gameState,
+      version: VERSION,
+      timestamp: Date.now(),
+    } as SavedGame;
+
+    // Update cache
+    setCachedSessionGame(updated);
+
+    // Persist to IndexedDB and WAIT for it
+    await saveGameToDB(updated);
+    await setSetting('sessionGame', updated);
+
+    console.log('[saveGameStateAsync] Successfully saved to IndexedDB');
+  } catch (error) {
+    console.error('[saveGameStateAsync] Failed to save game state:', error);
+  }
+}
+
+/**
+ * Save complete game state from Zustand store (sync cache + async persist)
+ * Call this after every CRUD operation
+ */
+export function saveGameState(state: any): void {
+  try {
+    let existing = loadGame();
+    console.log('[saveGameState] loadGame() returned:', existing ? `SavedGame (id: ${existing.playerProfile?.id})` : 'NULL');
+
+    // If no saved game exists at all, we can't save state
+    // This should only happen during initial app load before any player is created
+    if (!existing) {
+      console.warn('[saveGameState] No saved game found, cannot save game state');
+      return;
+    }
+
+    console.log('[saveGameState] Capturing state - assets:', Object.keys(state.assets || {}).length, 'list:', (state.list || []).length);
+
+    const gameState = {
+      // Engine
+      tick: state.tick,
+      seed: state.seed,
+      devMode: state.devMode,
+      dayStartTimestamp: state.dayStartTimestamp,
+      realTimeDayDuration: state.realTimeDayDuration,
+
+      // Player
+      cashUSD: state.cashUSD,
+      netWorthUSD: state.netWorthUSD,
+      holdings: state.holdings,
+      lpPositions: state.lpPositions,
+      blacklisted: state.blacklisted,
+      stats: {
+        reputation: state.reputation,
+        influence: state.influence,
+        security: state.security,
+        scrutiny: state.scrutiny,
+        exposure: state.exposure,
+      },
+
+      // Market
+      assets: state.assets,
+      list: state.list,
+      filters: state.filters,
+
+      // Influencer
+      influencer: {
+        followers: state.followers,
+        engagement: state.engagement,
+        authenticity: state.authenticity,
+      },
+
+      // Social
+      social: state.social,
+      posts: state.posts,
+
+      // Events
+      events: state.events,
+
+      // Operations
+      activeOps: state.activeOps,
+
+      // Offers
+      activeOffers: state.activeOffers,
+
+      // Unlocks
+      unlockedFeatures: state.unlockedFeatures,
     };
 
     saveGame({ gameState });
@@ -254,9 +358,17 @@ export function saveGameState(state: any): void {
 export function loadGameState(): any | null {
   try {
     const save = loadGame();
+    console.log('[loadGameState] loadGame() returned:', save ? `SavedGame (has gameState: ${!!save.gameState})` : 'NULL');
+
     if (!save || !save.gameState) {
+      console.log('[loadGameState] No save or no gameState, returning null');
       return null;
     }
+
+    console.log('[loadGameState] Extracting gameState:');
+    console.log('  - assets count:', Object.keys(save.gameState.assets || {}).length);
+    console.log('  - list length:', (save.gameState.list || []).length);
+    console.log('  - list sample:', (save.gameState.list || []).slice(0, 3));
 
     return {
       // Engine
@@ -280,17 +392,29 @@ export function loadGameState(): any | null {
 
       // Market
       assets: save.gameState.assets,
+      list: save.gameState.list,
+      filters: save.gameState.filters,
 
       // Influencer
       followers: save.gameState.influencer.followers,
       engagement: save.gameState.influencer.engagement,
       authenticity: save.gameState.influencer.authenticity,
 
+      // Social
+      social: save.gameState.social,
+      posts: save.gameState.posts,
+
+      // Events
+      events: save.gameState.events,
+
       // Operations
       activeOps: save.gameState.activeOps,
 
       // Offers
       activeOffers: save.gameState.activeOffers,
+
+      // Unlocks
+      unlockedFeatures: save.gameState.unlockedFeatures,
     };
   } catch (error) {
     console.error('Failed to load game state:', error);

@@ -1,7 +1,7 @@
 import { Container, Title, Paper, Table, TextInput, Group, Select, Badge, Button, Text, Anchor } from '@mantine/core';
 import { useStore } from '../stores/rootStore';
 import { formatUSD, formatPercent, getRiskColor, getChangeColor } from '../utils/format';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { calculateRugProbability } from '../engine/risk';
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import BuySellModal from '../features/trading/BuySellModal';
@@ -203,7 +203,7 @@ export default function Market() {
                     fw={700}
                     c="terminal.5"
                     ff="monospace"
-                    onClick={() => navigate(`/asset/${asset.id}`)}
+                    onClick={() => navigate(`/symbol/${asset.symbol}`)}
                     style={{ cursor: 'pointer' }}
                   >
                     {asset.symbol}

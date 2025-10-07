@@ -13,7 +13,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/market" element={<Market />} />
-      <Route path="/asset/:id" element={<AssetDetail />} />
+      <Route path="/symbol/:symbol" element={<AssetDetail />} />
       <Route path="/social" element={<Social />} />
       <Route path="/ops" element={<Ops />} />
       <Route path="/offers" element={<Offers />} />

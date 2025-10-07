@@ -1,0 +1,322 @@
+[
+  {
+    "id": "fake_1",
+    "template": "Rumors suggest {SYMBOL} Amazon partnership in talks",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_2",
+    "template": "Unconfirmed: {SYMBOL} to be added to S&P 500",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_3",
+    "template": "Anonymous tip: {SYMBOL} dev team selling everything",
+    "sentiment": "bearish",
+    "weight": 70,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_4",
+    "template": "Leaked memo: Major bank adding {SYMBOL} to custody",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_5",
+    "template": "Sources claim {SYMBOL} exit scam planned for Friday",
+    "sentiment": "bearish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_6",
+    "template": "Insider whisper: {SYMBOL} Tesla partnership brewing",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_7",
+    "template": "Unverified report: {SYMBOL} under FBI investigation",
+    "sentiment": "bearish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_8",
+    "template": "Speculation: Apple eyeing {SYMBOL} acquisition",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_9",
+    "template": "4chan thread: {SYMBOL} coordinator dump tonight",
+    "sentiment": "bearish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_10",
+    "template": "Telegram rumors: {SYMBOL} Coinbase listing next week",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_11",
+    "template": "Discord leak: {SYMBOL} stealth audit failed badly",
+    "sentiment": "bearish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_12",
+    "template": "Whispers of {SYMBOL} emergency team meeting",
+    "sentiment": "bearish",
+    "weight": 70,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_13",
+    "template": "Anonymous source: {SYMBOL} superbowl ad confirmed",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_14",
+    "template": "Alleged insider: {SYMBOL} contract vulnerability exists",
+    "sentiment": "bearish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_15",
+    "template": "Unconfirmed leak: {SYMBOL} BlackRock integration coming",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_16",
+    "template": "Reddit rumor: {SYMBOL} founders arrested abroad",
+    "sentiment": "bearish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_17",
+    "template": "Twitter speculation: {SYMBOL} government contract bid",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_18",
+    "template": "Claimed insider: {SYMBOL} ponzi scheme uncovered",
+    "sentiment": "bearish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_19",
+    "template": "Unverified: Warren Buffett bought {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_20",
+    "template": "Alleged leak: {SYMBOL} exchange wallet compromised",
+    "sentiment": "bearish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_21",
+    "template": "Rumor mill: {SYMBOL} Olympic sponsorship deal",
+    "sentiment": "bullish",
+    "weight": 70,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_22",
+    "template": "Anonymous tip: {SYMBOL} major holder liquidating",
+    "sentiment": "bearish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_23",
+    "template": "Speculation: Saudi fund allocating to {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_24",
+    "template": "Claimed source: {SYMBOL} multiple exploits found",
+    "sentiment": "bearish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_25",
+    "template": "Unconfirmed whisper: {SYMBOL} IPO preparations underway",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "arc_1_day1",
+    "template": "Rumors: {SYMBOL} in talks with major exchange",
+    "sentiment": "bullish",
+    "weight": 50,
+    "category": "arc",
+    "isFake": true
+  },
+  {
+    "id": "fake_26",
+    "template": "Leaked: {SYMBOL} Google partnership documents",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_27",
+    "template": "Anonymous whistleblower: {SYMBOL} massive fraud",
+    "sentiment": "bearish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_28",
+    "template": "Alleged insider: {SYMBOL} Microsoft acquisition talks",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_29",
+    "template": "Unconfirmed: {SYMBOL} quantum hack vulnerability",
+    "sentiment": "bearish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_30",
+    "template": "Rumor: Mark Zuckerberg buying {SYMBOL}",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_1",
+    "template": "Alleged leak: {SYMBOL} Pentagon contract confirmed",
+    "sentiment": "bullish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_2",
+    "template": "Anonymous: {SYMBOL} team arrested overseas",
+    "sentiment": "bearish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_3",
+    "template": "Unverified: {SYMBOL} Nvidia partnership leaked",
+    "sentiment": "bullish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_4",
+    "template": "Rumor: {SYMBOL} quantum vulnerability discovered",
+    "sentiment": "bearish",
+    "weight": 90,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_5",
+    "template": "Claimed insider: {SYMBOL} Twitter acquisition talks",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_6",
+    "template": "Alleged: {SYMBOL} SEC approval documents leaked",
+    "sentiment": "bullish",
+    "weight": 85,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_7",
+    "template": "Unconfirmed source: {SYMBOL} exchange hack planned",
+    "sentiment": "bearish",
+    "weight": 80,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_8",
+    "template": "Speculation: {SYMBOL} PayPal integration imminent",
+    "sentiment": "bullish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  },
+  {
+    "id": "fake_final_9",
+    "template": "Anonymous tip: {SYMBOL} coordinated dump tonight",
+    "sentiment": "bearish",
+    "weight": 75,
+    "category": "fake",
+    "isFake": true
+  }
+]

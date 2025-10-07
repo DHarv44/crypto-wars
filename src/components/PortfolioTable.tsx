@@ -1,9 +1,9 @@
-import { Paper, Table, Text, Badge } from '@mantine/core';
+import { Paper, Table, Text, Badge, Button, Group } from '@mantine/core';
 import { useStore } from '../stores/rootStore';
 import { formatUSD, formatNumber } from '../utils/format';
 
 export default function PortfolioTable() {
-  const { getPortfolioTable, assets } = useStore();
+  const { getPortfolioTable, assets, openBuySellModal } = useStore();
   const portfolio = getPortfolioTable(assets);
 
   if (portfolio.length === 0) {
@@ -31,6 +31,7 @@ export default function PortfolioTable() {
             <Table.Th>Units</Table.Th>
             <Table.Th>Value</Table.Th>
             <Table.Th>% of Portfolio</Table.Th>
+            <Table.Th>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -59,6 +60,26 @@ export default function PortfolioTable() {
                 >
                   {entry.pctOfTotal.toFixed(1)}%
                 </Badge>
+              </Table.Td>
+              <Table.Td>
+                <Group gap="xs" justify="flex-end">
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color="green"
+                    onClick={() => openBuySellModal(entry.assetId, 'buy')}
+                  >
+                    Buy
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color="red"
+                    onClick={() => openBuySellModal(entry.assetId, 'sell')}
+                  >
+                    Sell
+                  </Button>
+                </Group>
               </Table.Td>
             </Table.Tr>
           ))}

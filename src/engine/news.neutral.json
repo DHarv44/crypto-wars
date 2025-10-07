@@ -1,0 +1,296 @@
+[
+  {
+    "id": "neutral_1",
+    "template": "{SYMBOL} holding steady despite market volatility",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "stability"
+  },
+  {
+    "id": "neutral_2",
+    "template": "Market analysis: {SYMBOL} at critical decision point",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "technical"
+  },
+  {
+    "id": "neutral_3",
+    "template": "{SYMBOL} consolidating after recent move",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "technical"
+  },
+  {
+    "id": "neutral_4",
+    "template": "Traders split on {SYMBOL} next direction",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "sentiment"
+  },
+  {
+    "id": "neutral_5",
+    "template": "{SYMBOL} volume normalizing after spike",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "volume"
+  },
+  {
+    "id": "neutral_6",
+    "template": "Technical analysis: {SYMBOL} in symmetrical triangle pattern",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "technical"
+  },
+  {
+    "id": "neutral_7",
+    "template": "{SYMBOL} community voting on governance proposal",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "governance"
+  },
+  {
+    "id": "neutral_8",
+    "template": "Poll: Will {SYMBOL} break out or break down?",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "poll"
+  },
+  {
+    "id": "neutral_9",
+    "template": "{SYMBOL} quarterly report released - mixed signals",
+    "sentiment": "neutral",
+    "weight": 30,
+    "category": "report"
+  },
+  {
+    "id": "neutral_10",
+    "template": "Debate: {SYMBOL} utility vs speculation",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "debate"
+  },
+  {
+    "id": "neutral_11",
+    "template": "{SYMBOL} sideways action continues into week 3",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "price"
+  },
+  {
+    "id": "neutral_12",
+    "template": "Analysts divided on {SYMBOL} valuation",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "analyst"
+  },
+  {
+    "id": "neutral_13",
+    "template": "{SYMBOL} maintains market cap ranking",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "marketcap"
+  },
+  {
+    "id": "neutral_14",
+    "template": "Community discusses {SYMBOL} long-term vision",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "community"
+  },
+  {
+    "id": "neutral_15",
+    "template": "{SYMBOL} network stats remain consistent",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "metrics"
+  },
+  {
+    "id": "neutral_16",
+    "template": "Comparing {SYMBOL} to sector average - results neutral",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "comparison"
+  },
+  {
+    "id": "neutral_17",
+    "template": "{SYMBOL} awaiting major catalyst",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "catalyst"
+  },
+  {
+    "id": "neutral_18",
+    "template": "Survey results: {SYMBOL} holders mixed on outlook",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "survey"
+  },
+  {
+    "id": "neutral_19",
+    "template": "{SYMBOL} trading in tight range - low volatility",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "volatility"
+  },
+  {
+    "id": "neutral_20",
+    "template": "Options market neutral on {SYMBOL} direction",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "derivatives"
+  },
+  {
+    "id": "neutral_21",
+    "template": "{SYMBOL} funding rate balanced - no clear bias",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "funding"
+  },
+  {
+    "id": "neutral_22",
+    "template": "Institutional sentiment on {SYMBOL} unchanged",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "institutional"
+  },
+  {
+    "id": "neutral_23",
+    "template": "{SYMBOL} correlation with market average",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "correlation"
+  },
+  {
+    "id": "neutral_24",
+    "template": "Webinar scheduled: Understanding {SYMBOL} fundamentals",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "education"
+  },
+  {
+    "id": "neutral_25",
+    "template": "{SYMBOL} team publishes transparency report",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "transparency"
+  },
+  {
+    "id": "arc_3_day1",
+    "template": "{SYMBOL} audit scheduled - community anxious",
+    "sentiment": "neutral",
+    "weight": 55,
+    "category": "arc"
+  },
+  {
+    "id": "arc_5_day1",
+    "template": "{SYMBOL} community vote begins - contentious proposal",
+    "sentiment": "neutral",
+    "weight": 50,
+    "category": "arc"
+  },
+  {
+    "id": "neutral_26",
+    "template": "{SYMBOL} enters price discovery mode",
+    "sentiment": "neutral",
+    "weight": 30,
+    "category": "price"
+  },
+  {
+    "id": "neutral_27",
+    "template": "{SYMBOL} whales and retail reach equilibrium",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "balance"
+  },
+  {
+    "id": "neutral_28",
+    "template": "{SYMBOL} order book analysis shows balance",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "orderbook"
+  },
+  {
+    "id": "neutral_29",
+    "template": "{SYMBOL} consolidating after volatility",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "technical"
+  },
+  {
+    "id": "neutral_30",
+    "template": "{SYMBOL} next move unclear - traders wait",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "sentiment"
+  },
+  {
+    "id": "neutral_final_1",
+    "template": "{SYMBOL} whitepaper V2 released for review",
+    "sentiment": "neutral",
+    "weight": 30,
+    "category": "documentation"
+  },
+  {
+    "id": "neutral_final_2",
+    "template": "{SYMBOL} community debates governance changes",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "governance"
+  },
+  {
+    "id": "neutral_final_3",
+    "template": "{SYMBOL} market makers rebalance positions",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "trading"
+  },
+  {
+    "id": "neutral_final_4",
+    "template": "{SYMBOL} enters accumulation zone - analysts",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "technical"
+  },
+  {
+    "id": "neutral_final_5",
+    "template": "{SYMBOL} quarterly transparency report published",
+    "sentiment": "neutral",
+    "weight": 30,
+    "category": "transparency"
+  },
+  {
+    "id": "neutral_final_6",
+    "template": "{SYMBOL} options expiry this Friday - volatility expected",
+    "sentiment": "neutral",
+    "weight": 35,
+    "category": "derivatives"
+  },
+  {
+    "id": "neutral_final_7",
+    "template": "{SYMBOL} roadmap milestone reached on schedule",
+    "sentiment": "neutral",
+    "weight": 30,
+    "category": "development"
+  },
+  {
+    "id": "neutral_final_8",
+    "template": "{SYMBOL} correlation with market average",
+    "sentiment": "neutral",
+    "weight": 20,
+    "category": "correlation"
+  },
+  {
+    "id": "neutral_final_9",
+    "template": "{SYMBOL} holders vote on treasury allocation",
+    "sentiment": "neutral",
+    "weight": 25,
+    "category": "governance"
+  },
+  {
+    "id": "neutral_final_10",
+    "template": "{SYMBOL} network statistics remain stable",
+    "sentiment": "neutral",
+    "weight": 15,
+    "category": "metrics"
+  }
+]

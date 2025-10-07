@@ -1,4 +1,4 @@
-import { Modal, Stack, Text, NumberInput, Button, Group, Alert } from '@mantine/core';
+import { Modal, Stack, Text, NumberInput, Button, Group, Alert, Switch } from '@mantine/core';
 import { useState, useMemo } from 'react';
 import { useStore } from '../../stores/rootStore';
 import { executeTrade } from '../../engine/api';
@@ -22,9 +22,12 @@ export default function BuySellModal() {
     realTimeDayDuration,
     saveGame,
     marketOpen,
+    createLimitOrder,
   } = useStore();
 
   const [amount, setAmount] = useState<number | string>(0);
+  const [isLimitOrder, setIsLimitOrder] = useState(false);
+  const [triggerPrice, setTriggerPrice] = useState<number | string>(0);
 
   const asset = selectedAssetId ? assets[selectedAssetId] : null;
   const currentHoldings = selectedAssetId ? holdings[selectedAssetId] || 0 : 0;
@@ -54,6 +57,50 @@ export default function BuySellModal() {
   const handleExecute = async () => {
     if (!asset || !quote) return;
 
+    // Handle limit orders
+    if (isLimitOrder) {
+      if (!triggerPrice || typeof triggerPrice === 'string' || triggerPrice <= 0) {
+        notifications.show({
+          title: 'Invalid Trigger Price',
+          message: 'Please enter a valid trigger price',
+          color: 'red',
+        });
+        return;
+      }
+
+      try {
+        createLimitOrder({
+          assetId: asset.id,
+          assetSymbol: asset.symbol,
+          type: tradeType === 'buy' ? 'buy' : 'sell',
+          triggerPrice: Number(triggerPrice),
+          amount: tradeType === 'buy' ? Number(amount) : quote.units,
+          createdDay: day,
+        });
+
+        await saveGame();
+
+        notifications.show({
+          title: 'Limit Order Created',
+          message: `Order will execute when ${asset.symbol} ${tradeType === 'buy' ? 'drops to' : 'rises to'} ${formatUSD(Number(triggerPrice), asset.price < 1 ? 6 : 2)}`,
+          color: 'blue',
+        });
+
+        setAmount(0);
+        setTriggerPrice(0);
+        setIsLimitOrder(false);
+        closeBuySellModal();
+      } catch (error) {
+        notifications.show({
+          title: 'Failed to Create Order',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          color: 'red',
+        });
+      }
+      return;
+    }
+
+    // Handle immediate trades
     try {
       const player = {
         cashUSD,
@@ -116,6 +163,8 @@ export default function BuySellModal() {
 
       // Close modal and reset
       setAmount(0);
+      setTriggerPrice(0);
+      setIsLimitOrder(false);
       closeBuySellModal();
     } catch (error) {
       notifications.show({
@@ -128,6 +177,8 @@ export default function BuySellModal() {
 
   const handleClose = () => {
     setAmount(0);
+    setTriggerPrice(0);
+    setIsLimitOrder(false);
     closeBuySellModal();
   };
 
@@ -176,6 +227,34 @@ export default function BuySellModal() {
             </Text>
           </div>
         </Group>
+
+        {/* Limit Order Toggle */}
+        <Switch
+          label="Limit Order (trigger when price reaches target)"
+          checked={isLimitOrder}
+          onChange={(event) => setIsLimitOrder(event.currentTarget.checked)}
+          disabled={!marketOpen}
+        />
+
+        {/* Trigger Price (for limit orders) */}
+        {isLimitOrder && (
+          <NumberInput
+            label={
+              tradeType === 'buy'
+                ? 'Trigger Price (buy when price drops to this)'
+                : 'Trigger Price (sell when price rises to this)'
+            }
+            placeholder="Enter trigger price"
+            value={triggerPrice}
+            onChange={setTriggerPrice}
+            min={0}
+            step={asset.price < 1 ? 0.000001 : 0.01}
+            decimalScale={asset.price < 1 ? 8 : 2}
+            leftSection="$"
+            size="lg"
+            disabled={!marketOpen}
+          />
+        )}
 
         {/* Amount Input */}
         <NumberInput
@@ -246,9 +325,16 @@ export default function BuySellModal() {
             <Button
               color={tradeType === 'buy' ? 'green' : 'red'}
               onClick={handleExecute}
-              disabled={!marketOpen || !quote || !quote.canAfford || !amount || amount === 0}
+              disabled={
+                !marketOpen ||
+                !quote ||
+                (!isLimitOrder && !quote.canAfford) ||
+                !amount ||
+                amount === 0 ||
+                (isLimitOrder && (!triggerPrice || triggerPrice === 0))
+              }
             >
-              {tradeType === 'buy' ? 'Buy' : 'Sell'}
+              {isLimitOrder ? 'Create Limit Order' : tradeType === 'buy' ? 'Buy Now' : 'Sell Now'}
             </Button>
           </Group>
         </Group>

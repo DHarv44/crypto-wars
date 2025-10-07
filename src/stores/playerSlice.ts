@@ -1,7 +1,10 @@
 import { StateCreator } from 'zustand';
-import { PlayerState, Trade, PositionCostBasis } from '../engine/types';
+import { PlayerState, Trade, PositionCostBasis, LimitOrder } from '../engine/types';
 
 export interface PlayerSlice extends PlayerState {
+  // Limit orders
+  limitOrders: LimitOrder[];
+
   // Actions
   init: () => void;
   recalcNetWorth: (prices: Record<string, number>, currentTick: number) => void;
@@ -10,6 +13,12 @@ export interface PlayerSlice extends PlayerState {
   adjustStat: (key: keyof PlayerState, delta: number) => void;
   applyUpdates: (updates: Partial<PlayerState>) => void;
   recordTrade: (trade: Omit<Trade, 'id' | 'timestamp'>) => void;
+
+  // Limit order actions
+  createLimitOrder: (order: Omit<LimitOrder, 'id' | 'status'>) => void;
+  cancelLimitOrder: (orderId: string) => void;
+  executeLimitOrder: (orderId: string) => void;
+  getPendingOrders: () => LimitOrder[];
 
   // Selectors
   getKPIs: () => Record<string, number>;
@@ -55,6 +64,7 @@ export const createPlayerSlice: StateCreator<PlayerSlice> = (set, get) => ({
   realizedPnL: 0,
   initialNetWorth: 10000,
   netWorthHistory: [{ tick: 0, value: 10000 }],
+  limitOrders: [],
 
   init: () => {
     const initialNW = 10000;
@@ -315,5 +325,35 @@ export const createPlayerSlice: StateCreator<PlayerSlice> = (set, get) => ({
       best: performers.slice(0, 3),
       worst: performers.slice(-3).reverse(),
     };
+  },
+
+  createLimitOrder: (order: Omit<LimitOrder, 'id' | 'status'>) => {
+    const newOrder: LimitOrder = {
+      ...order,
+      id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      status: 'pending',
+    };
+    set((state) => ({ limitOrders: [...state.limitOrders, newOrder] }));
+  },
+
+  cancelLimitOrder: (orderId: string) => {
+    set((state) => ({
+      limitOrders: state.limitOrders.map((order) =>
+        order.id === orderId ? { ...order, status: 'cancelled' as const } : order
+      ),
+    }));
+  },
+
+  executeLimitOrder: (orderId: string) => {
+    set((state) => ({
+      limitOrders: state.limitOrders.map((order) =>
+        order.id === orderId ? { ...order, status: 'executed' as const } : order
+      ),
+    }));
+  },
+
+  getPendingOrders: () => {
+    const state = get();
+    return state.limitOrders.filter((order) => order.status === 'pending');
   },
 });

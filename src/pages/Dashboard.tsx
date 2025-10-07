@@ -7,6 +7,7 @@ import PortfolioTable from '../components/PortfolioTable';
 import PnLMetrics from '../components/PnLMetrics';
 import PortfolioValueChart from '../components/PortfolioValueChart';
 import RecentTrades from '../components/RecentTrades';
+import LimitOrdersTable from '../components/LimitOrdersTable';
 import BuySellModal from '../features/trading/BuySellModal';
 
 export default function Dashboard() {
@@ -22,6 +23,8 @@ export default function Dashboard() {
         <NewsTicker />
 
         <PortfolioTable />
+
+        <LimitOrdersTable />
 
         <PortfolioValueChart />
 

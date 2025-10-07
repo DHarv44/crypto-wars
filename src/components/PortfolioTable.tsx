@@ -69,7 +69,7 @@ export default function PortfolioTable() {
               </Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>
                 <Text size="xs" ff="monospace">
-                  {formatUSD(entry.currentPrice, 2)}
+                  {formatUSD(entry.currentPrice, entry.currentPrice < 1 ? 6 : 2)}
                 </Text>
               </Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>

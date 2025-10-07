@@ -12,10 +12,11 @@ import { createSocialSlice, SocialSlice } from './socialSlice';
 import { createUnlocksSlice, UnlocksSlice } from './unlocksSlice';
 import { createNewsSlice, NewsSlice } from '../features/news/newsSlice';
 import { executeTick } from '../engine/tick';
+import { executeTrade } from '../engine/api';
 import { saveGame, loadGame } from '../utils/persistence';
 import { setActiveProfileId } from '../utils/storage';
 import { rollDailyNews, applyNewsImpact, checkFakeNewsDebunks, reverseFakeNewsImpact } from '../engine/news';
-import { MIN_PRICE } from '../utils/format';
+import { MIN_PRICE, TRADING_FEE } from '../utils/format';
 
 export type RootStore = EngineSlice & MarketSlice & PlayerSlice & EventsSlice & TradingSlice & OpsSlice & OffersSlice & InfluencerSlice & OnboardingSlice & SocialSlice & UnlocksSlice & NewsSlice & {
   // Dirty flag for auto-save optimization
@@ -160,6 +161,83 @@ export const useStore = create<RootStore>((set, get, store) => ({
 
       state.markDirty(); // Mark for auto-save
     }
+
+    // Check pending limit orders (use updated assets from state after price changes)
+    const pendingOrders = state.getPendingOrders();
+    for (const order of pendingOrders) {
+      const currentAsset = state.assets[order.assetId];
+      if (!currentAsset) continue;
+
+      // Check if price condition met
+      const shouldExecute =
+        (order.type === 'buy' && currentAsset.price <= order.triggerPrice) ||
+        (order.type === 'sell' && currentAsset.price >= order.triggerPrice);
+
+      if (shouldExecute) {
+        // Execute trade automatically via executeTrade API
+        try {
+          const playerState: any = {
+            cashUSD: state.cashUSD,
+            holdings: state.holdings,
+            netWorthUSD: state.netWorthUSD,
+            reputation: state.reputation,
+            influence: state.influence,
+            security: state.security,
+            scrutiny: state.scrutiny,
+            exposure: state.exposure,
+            lpPositions: state.lpPositions,
+            blacklisted: state.blacklisted,
+          };
+
+          const tradeResult = executeTrade(
+            {
+              type: order.type === 'buy' ? 'BUY' : 'SELL',
+              assetId: order.assetId,
+              usd: order.type === 'buy' ? order.amount : undefined,
+              units: order.type === 'sell' ? order.amount : undefined,
+            },
+            currentAsset,
+            playerState
+          );
+
+          // Apply trade results
+          if (tradeResult.assetUpdates && Object.keys(tradeResult.assetUpdates).length > 0) {
+            state.applyTickUpdates({ [currentAsset.id]: tradeResult.assetUpdates });
+          }
+          if (tradeResult.playerUpdates) {
+            state.applyUpdates(tradeResult.playerUpdates);
+          }
+
+          // Record trade
+          const units = order.type === 'buy' ? (order.amount / currentAsset.price) : order.amount;
+          state.recordTrade({
+            tick: state.tick,
+            type: order.type,
+            assetId: order.assetId,
+            assetSymbol: order.assetSymbol,
+            units: units,
+            pricePerUnit: currentAsset.price,
+            totalUSD: order.type === 'buy' ? order.amount : (order.amount * currentAsset.price),
+            fees: order.type === 'sell' ? TRADING_FEE : undefined,
+          });
+
+          // Mark order as executed
+          state.executeLimitOrder(order.id);
+
+          // Push event to feed
+          state.pushEvent({
+            tick: state.tick,
+            type: 'trade',
+            message: `⚡ LIMIT ORDER EXECUTED: ${order.type.toUpperCase()} ${order.assetSymbol} at ${currentAsset.price.toFixed(8)}`,
+            severity: 'success',
+          });
+
+          state.markDirty(); // Mark for auto-save
+        } catch (error) {
+          console.error('[RootStore] Failed to execute limit order:', error);
+        }
+      }
+    }
   },
 
   // Process day advancement (called when day changes)
@@ -167,13 +245,31 @@ export const useStore = create<RootStore>((set, get, store) => ({
   processDay: async () => {
     set({ isProcessingDay: true });
 
-    // Ensure loading screen shows for at least 3 seconds
+    // Wait for fade animation (0.5s as defined in CSS)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Ensure loading screen shows for at least 3 seconds total
     const startTime = Date.now();
     const minLoadingTime = 3000;
 
     const state = get();
     const day = state.day;
     const assets = state.assets;
+
+    // Calculate remaining ticks in the day and simulate them
+    const ticksPerDay = 1800;
+    const remaining = state.getTimeUntilNextDay();
+    const elapsed = state.realTimeDayDuration - remaining;
+    const currentTickInDay = Math.floor((elapsed / state.realTimeDayDuration) * ticksPerDay);
+    const remainingTicks = ticksPerDay - currentTickInDay;
+
+    console.log(`[processDay] Simulating ${remainingTicks} remaining ticks for day ${day}`);
+
+    // Simulate remaining ticks to complete the day's price action
+    for (let i = 0; i < remainingTicks; i++) {
+      state.processTick();
+    }
+
     const player: any = {
       cashUSD: state.cashUSD,
       netWorthUSD: state.netWorthUSD,

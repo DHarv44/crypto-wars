@@ -31,6 +31,7 @@ interface GameState {
   realizedPnL: number;
   initialNetWorth: number;
   netWorthHistory: any[];
+  limitOrders: any[];
 
   // Market
   assets: Record<string, any>;
@@ -132,6 +133,7 @@ export async function saveGame(state: Partial<GameState>): Promise<void> {
       realizedPnL: state.realizedPnL ?? 0,
       initialNetWorth: state.initialNetWorth ?? 10000,
       netWorthHistory: state.netWorthHistory ?? [{ tick: 0, value: 10000 }],
+      limitOrders: state.limitOrders ?? [],
 
       // Market
       assets: state.assets ?? {},

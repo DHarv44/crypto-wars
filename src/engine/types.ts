@@ -70,6 +70,18 @@ export interface PositionCostBasis {
   trades: string[]; // Trade IDs
 }
 
+export interface LimitOrder {
+  id: string;
+  assetId: string;
+  assetSymbol: string;
+  type: 'buy' | 'sell';
+  triggerPrice: number;
+  amount: number; // USD for buy, units for sell
+  createdDay: number;
+  expiresDay?: number; // Optional expiration
+  status: 'pending' | 'executed' | 'cancelled' | 'expired';
+}
+
 export interface PlayerState {
   cashUSD: number;
   netWorthUSD: number;

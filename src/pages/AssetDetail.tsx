@@ -22,10 +22,16 @@ export default function AssetDetail() {
   const assetNews = asset ? getNewsByAsset(asset.id) : [];
 
   const change24h = useMemo(() => {
-    if (!asset || !asset.priceHistory || asset.priceHistory.length === 0) return 0;
-    const history = asset.priceHistory;
-    const oldPrice = history.length > 5 ? history[history.length - 6].close : asset.basePrice;
-    return ((asset.price - oldPrice) / oldPrice) * 100;
+    if (!asset || !asset.priceHistory) return 0;
+
+    // Use today's history for intraday change
+    const todayHistory = asset.priceHistory.today || [];
+
+    if (todayHistory.length === 0) return 0;
+
+    // Calculate change from start of today
+    const startPrice = todayHistory[0]?.open || asset.price;
+    return startPrice > 0 ? ((asset.price - startPrice) / startPrice) * 100 : 0;
   }, [asset]);
 
   if (!asset) {

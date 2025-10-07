@@ -37,6 +37,7 @@ export default function RecentTrades() {
               <Table.Th>Units</Table.Th>
               <Table.Th>Price</Table.Th>
               <Table.Th>Total</Table.Th>
+              <Table.Th>Fee</Table.Th>
               <Table.Th>P&L</Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -85,6 +86,17 @@ export default function RecentTrades() {
                   <Text size="sm" ff="monospace" fw={600}>
                     {formatUSD(trade.totalUSD, 2)}
                   </Text>
+                </Table.Td>
+                <Table.Td>
+                  {trade.fees ? (
+                    <Text size="sm" ff="monospace" c="red">
+                      {formatUSD(trade.fees, 2)}
+                    </Text>
+                  ) : (
+                    <Text size="sm" c="dimmed">
+                      -
+                    </Text>
+                  )}
                 </Table.Td>
                 <Table.Td>
                   {trade.realizedPnL !== undefined ? (

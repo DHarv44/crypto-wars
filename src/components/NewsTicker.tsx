@@ -6,7 +6,13 @@ import { useNavigate } from 'react-router-dom';
 export default function NewsTicker() {
   const { getRecentNews, day, assets } = useStore();
   const navigate = useNavigate();
-  const recentNews = getRecentNews(10);
+  const allNews = getRecentNews(50);
+
+  // Only show news from last 5 days
+  const recentNews = allNews.filter(article => {
+    const daysAgo = day - article.day;
+    return daysAgo <= 5;
+  }).slice(0, 10);
 
   if (recentNews.length === 0) {
     return null;

@@ -7,6 +7,12 @@ export const UNIT_PRECISION = 8; // 8 decimal places (Bitcoin satoshi precision)
 export const UNIT_STEP = 0.00000001; // Smallest increment for selling units
 export const DUST_THRESHOLD = 1e-8; // Minimum units to consider as "holding" (filters out floating point errors)
 
+// Price floor - nothing can go cheaper than $0.00001
+export const MIN_PRICE = 0.00001;
+
+// Trading fee (flat $8 per trade)
+export const TRADING_FEE = 8;
+
 export function formatUSD(value: number, decimals = 2): string {
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }

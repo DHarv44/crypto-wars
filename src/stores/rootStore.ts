@@ -15,6 +15,7 @@ import { executeTick } from '../engine/tick';
 import { saveGame, loadGame } from '../utils/persistence';
 import { setActiveProfileId } from '../utils/storage';
 import { rollDailyNews, applyNewsImpact, checkFakeNewsDebunks, reverseFakeNewsImpact } from '../engine/news';
+import { MIN_PRICE } from '../utils/format';
 
 export type RootStore = EngineSlice & MarketSlice & PlayerSlice & EventsSlice & TradingSlice & OpsSlice & OffersSlice & InfluencerSlice & OnboardingSlice & SocialSlice & UnlocksSlice & NewsSlice & {
   // Dirty flag for auto-save optimization
@@ -107,7 +108,7 @@ export const useStore = create<RootStore>((set, get, store) => ({
 
         const sigma = scaledVolatility * (0.8 + asset.socialHype * 0.6) * (1 + noise);
         const delta = (Math.random() - 0.5) * 2 * sigma; // Approximate normal distribution
-        const newPrice = Math.max(0.0001, oldPrice * (1 + delta));
+        const newPrice = Math.max(MIN_PRICE, oldPrice * (1 + delta));
 
         // Get or create current day's candle in today array
         const priceHistory = asset.priceHistory || {

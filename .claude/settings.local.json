@@ -20,7 +20,8 @@
       "Bash(findstr:*)",
       "Bash(curl:*)",
       "Bash(taskkill:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []

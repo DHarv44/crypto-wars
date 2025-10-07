@@ -6,6 +6,7 @@
 import type { AssetTemplate, OHLC, GeneratedEvent, NewsTemplate, InfluencerTemplate } from './types';
 import { initRNG } from '../engine/rng';
 import { PriceHistoryByResolution, PriceCandle } from '../engine/types';
+import { MIN_PRICE } from '../utils/format';
 
 // Import templates
 import btcTemplate from './assets/BTC.json';
@@ -280,7 +281,6 @@ function generateRandomWalkData(
 
   // Start at day 0 (today) with current basePrice
   // Work backward to generate history
-  const prices: number[] = [];
   let currentPrice = basePrice; // Start at current price (day 0)
 
   // Calculate launch price (30-70% of current for normal coins, 70-95% for ultra-low)
@@ -312,16 +312,16 @@ function generateRandomWalkData(
   for (let day = endDay; day >= startDay; day--) {
     // Generate OHLC for this day
     const intradayVol = adjustedVolatility * 0.5;
-    const high = currentPrice * (1 + Math.abs(rng.range(0, intradayVol)));
-    const low = currentPrice * (1 - Math.abs(rng.range(0, intradayVol)));
-    const open = currentPrice * (1 + rng.range(-intradayVol * 0.5, intradayVol * 0.5));
-    const close = currentPrice;
+    const high = Math.max(MIN_PRICE, currentPrice * (1 + Math.abs(rng.range(0, intradayVol))));
+    const low = Math.max(MIN_PRICE, currentPrice * (1 - Math.abs(rng.range(0, intradayVol))));
+    const open = Math.max(MIN_PRICE, currentPrice * (1 + rng.range(-intradayVol * 0.5, intradayVol * 0.5)));
+    const close = Math.max(MIN_PRICE, currentPrice);
 
-    prices.unshift({
+    ohlc.unshift({
       day,
       open,
       high: Math.max(open, close, high),
-      low: Math.min(open, close, low),
+      low: Math.max(MIN_PRICE, Math.min(open, close, low)),
       close,
     });
 
@@ -348,13 +348,15 @@ function generateRandomWalkData(
       const dailyChange = rng.range(-adjustedVolatility, adjustedVolatility) + dailyDrift;
       currentPrice = currentPrice * (1 + dailyChange) / pumpMultiplier;
 
-      // Keep price reasonable
+      // Enforce price floor
+      currentPrice = Math.max(MIN_PRICE, currentPrice);
+      // Keep price reasonable relative to basePrice
       currentPrice = Math.max(currentPrice, basePrice * 0.01);
       currentPrice = Math.min(currentPrice, basePrice * 50); // Cap at 50x current
     }
   }
 
-  return prices;
+  return ohlc;
 }
 
 /**
@@ -462,6 +464,53 @@ export async function backfillProfile(profileId: string, seed: number): Promise<
 
   const allNewsEvents: GeneratedEvent[] = [];
   const priceHistory: Record<string, PriceHistoryByResolution> = {};
+
+  // Generate news for TODAY (day 1) + last 4 days
+  console.log('[Backfill] Generating news for today (day 1) + last 4 days...');
+  const newsRng = initRNG(seed + 5000);
+  for (let day = 1; day >= -3; day--) {
+    const articlesThisDay = Math.floor(newsRng.range(8, 13)); // 8-12 articles per day
+    const dayLabel = day === 1 ? 'TODAY (day 1)' : `day ${day}`;
+    console.log(`[Backfill] ${dayLabel}: generating ${articlesThisDay} articles`);
+
+    for (let i = 0; i < articlesThisDay; i++) {
+      const randomAsset = assetsSeed[Math.floor(newsRng.range(0, assetsSeed.length))];
+      const isPositive = newsRng.range(0, 1) < 0.5;
+      const templates = isPositive ? newsTemplates.filter((t: any) => t.impact === 'pos') : newsTemplates.filter((t: any) => t.impact === 'neg');
+
+      if (templates.length === 0) {
+        console.error('[Backfill] No templates found for impact:', isPositive ? 'pos' : 'neg');
+        continue;
+      }
+
+      const template = templates[Math.floor(newsRng.range(0, templates.length))] as any;
+      let headline = template.headline.replace('{ASSET}', randomAsset.symbol);
+
+      // Replace {COMPANY} placeholder if exists
+      if (template.companies && headline.includes('{COMPANY}')) {
+        const company = template.companies[Math.floor(newsRng.range(0, template.companies.length))];
+        headline = headline.replace('{COMPANY}', company);
+      }
+
+      // Replace {AGENCY} placeholder if exists
+      if (template.agencies && headline.includes('{AGENCY}')) {
+        const agency = template.agencies[Math.floor(newsRng.range(0, template.agencies.length))];
+        headline = headline.replace('{AGENCY}', agency);
+      }
+
+      const impact = isPositive ? 'positive' : 'negative';
+      const severity = Math.abs(template.severity || 0.05);
+
+      allNewsEvents.push({
+        day: day,
+        assetId: randomAsset.id,
+        assetSymbol: randomAsset.symbol,
+        headline,
+        impact,
+        severity,
+      });
+    }
+  }
 
   for (const asset of assetsSeed) {
     console.log(`[Backfill] Processing ${asset.symbol}...`);

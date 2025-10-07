@@ -2,7 +2,7 @@ import { Modal, Stack, Text, NumberInput, Button, Group, Alert } from '@mantine/
 import { useState, useMemo } from 'react';
 import { useStore } from '../../stores/rootStore';
 import { executeTrade } from '../../engine/api';
-import { formatUSD, formatUnits, UNIT_PRECISION, UNIT_STEP } from '../../utils/format';
+import { formatUSD, formatUnits, UNIT_PRECISION, UNIT_STEP, TRADING_FEE } from '../../utils/format';
 import { notifications } from '@mantine/notifications';
 
 export default function BuySellModal() {
@@ -101,6 +101,7 @@ export default function BuySellModal() {
         units: quote.units,
         pricePerUnit: asset.price,
         totalUSD: tradeType === 'buy' ? Number(amount) : quote.amount,
+        fees: tradeType === 'sell' ? TRADING_FEE : undefined,
       });
 
       // Save to IndexedDB after trade

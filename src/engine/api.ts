@@ -7,6 +7,7 @@ import { Asset, PlayerState, Operation } from './types';
 import { getRNG } from './rng';
 import { applyPump } from './pricing';
 import { calculateScrutinyIncrease, calculateExposureIncrease } from './risk';
+import { TRADING_FEE } from '../utils/format';
 
 export interface TradeAction {
   type: 'BUY' | 'SELL';
@@ -83,17 +84,19 @@ export function executeTrade(
       throw new Error('Insufficient units');
     }
 
-    const usd = units * asset.price;
+    const grossProceeds = units * asset.price;
+    const netProceeds = grossProceeds - TRADING_FEE;
+
     return {
       assetUpdates: {},
       playerUpdates: {
-        cashUSD: player.cashUSD + usd,
+        cashUSD: player.cashUSD + netProceeds,
         holdings: {
           ...player.holdings,
           [asset.id]: currentUnits - units,
         },
       },
-      message: `Sold ${units.toFixed(4)} ${asset.symbol} for $${usd.toFixed(2)}`,
+      message: `Sold ${units.toFixed(4)} ${asset.symbol} for $${grossProceeds.toFixed(2)} (Fee: $${TRADING_FEE})`,
     };
   }
 }

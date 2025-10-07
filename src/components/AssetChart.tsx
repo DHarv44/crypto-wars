@@ -48,6 +48,30 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
         },
         rightPriceScale: {
           borderColor: 'rgba(0, 255, 0, 0.3)',
+          visible: true,
+          autoScale: true,
+          scaleMargins: {
+            top: 0.1,
+            bottom: 0.1,
+          },
+          mode: 0, // Normal price scale mode
+          minMove: 0.000001, // Support prices down to 6 decimal places
+          minimumWidth: 80, // Ensure enough space for labels
+        },
+        localization: {
+          priceFormatter: (price: number) => {
+            // For very small prices, use appropriate decimal places
+            if (price === 0) return '0.000000';
+            if (price < 0.0001) {
+              return price.toFixed(8);
+            } else if (price < 0.01) {
+              return price.toFixed(6);
+            } else if (price < 1) {
+              return price.toFixed(4);
+            } else {
+              return price.toFixed(2);
+            }
+          },
         },
       });
 

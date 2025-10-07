@@ -27,8 +27,8 @@ export default function EventFeed() {
               No events yet...
             </Text>
           )}
-          {recentEvents.map((event) => (
-            <Group key={event.id} gap="xs" wrap="nowrap" align="flex-start">
+          {recentEvents.map((event, index) => (
+            <Group key={event.id || `${event.tick}-${index}`} gap="xs" wrap="nowrap" align="flex-start">
               <Badge size="sm" color={getSeverityColor(event)} variant="light" style={{ flexShrink: 0 }}>
                 {formatTick(event.tick)}
               </Badge>

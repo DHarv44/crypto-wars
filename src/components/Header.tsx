@@ -9,7 +9,7 @@ import { FileButton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
 export default function Header() {
-  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD } = useStore();
+  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD, isProcessingDay } = useStore();
 
   const [timeRemaining, setTimeRemaining] = useState('');
   const [canAdvance, setCanAdvance] = useState(false);

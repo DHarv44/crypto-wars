@@ -5,11 +5,11 @@ import OnboardingFlow from './features/onboarding/OnboardingFlow';
 import { useStore } from './stores/rootStore';
 import { useEffect, useState } from 'react';
 import { hasSavedGame } from './utils/persistence';
-import { Loader, Center } from '@mantine/core';
+import { Loader, Center, Overlay, Stack, Text } from '@mantine/core';
 import { initCache } from './data/storageCache';
 
 function App() {
-  const { hasCompletedOnboarding, completeOnboarding, loadGame, processTick, saveGame } = useStore();
+  const { hasCompletedOnboarding, completeOnboarding, loadGame, processTick, saveGame, isProcessingDay } = useStore();
   const [isReady, setIsReady] = useState(false);
 
   // Initialize app on mount
@@ -82,6 +82,45 @@ function App() {
       <AppShell>
         <AppRoutes />
       </AppShell>
+
+      {/* Day processing overlay */}
+      {isProcessingDay && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#000',
+            zIndex: 9999,
+            animation: 'fadeToBlack 0.5s ease-in-out'
+          }}
+        >
+          <Center h="100vh">
+            <Stack align="center" gap="xl">
+              <Loader size="xl" color="terminal.5" />
+              <Text size="xl" fw={700} c="terminal.5" ff="monospace">
+                PROCESSING DAY...
+              </Text>
+              <Text size="sm" c="dimmed" ff="monospace">
+                Generating news, aggregating prices, updating markets...
+              </Text>
+            </Stack>
+          </Center>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeToBlack {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </BrowserRouter>
   );
 }

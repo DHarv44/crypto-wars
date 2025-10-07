@@ -24,32 +24,10 @@ export function executeTick(
 ): TickResult {
   const assetUpdates: Record<string, Partial<Asset>> = {};
 
-  // 1. Update all asset prices
-  for (const asset of Object.values(assets)) {
-    if (asset.rugged) {
-      assetUpdates[asset.id] = {}; // No changes
-      continue;
-    }
+  // Note: Price updates are handled by processTick() (intra-day)
+  // executeTick only handles daily events, news, offers, etc.
 
-    const newPrice = updatePrice(asset);
-    const history = asset.priceHistory || [];
-
-    // Add new candle (simplified: open=close from previous, high=low=close for now)
-    const candle: PriceCandle = {
-      tick,
-      open: asset.price,
-      high: Math.max(asset.price, newPrice),
-      low: Math.min(asset.price, newPrice),
-      close: newPrice,
-    };
-
-    assetUpdates[asset.id] = {
-      price: newPrice,
-      priceHistory: [...history.slice(-99), candle], // Keep last 100 candles
-    };
-  }
-
-  // 2. Process active operations
+  // 1. Process active operations
   const rng = getRNG();
   const operationEvents: EventResult['events'] = [];
 

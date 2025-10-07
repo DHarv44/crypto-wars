@@ -22,6 +22,9 @@ export type RootStore = EngineSlice & MarketSlice & PlayerSlice & EventsSlice & 
   isDirty: boolean;
   markDirty: () => void;
 
+  // Day processing state
+  isProcessingDay: boolean;
+
   // Orchestration actions
   initGame: () => Promise<void>;
   processTick: () => void;  // NEW: Runs every game second (intra-day price updates)
@@ -48,6 +51,9 @@ export const useStore = create<RootStore>((set, get, store) => ({
   // Dirty flag for auto-save
   isDirty: false,
   markDirty: () => set({ isDirty: true }),
+
+  // Day processing state
+  isProcessingDay: false,
 
   // Orchestration
   initGame: async () => {
@@ -159,6 +165,12 @@ export const useStore = create<RootStore>((set, get, store) => ({
   // Process day advancement (called when day changes)
   // Handles daily events, news, offers, etc
   processDay: async () => {
+    set({ isProcessingDay: true });
+
+    // Ensure loading screen shows for at least 3 seconds
+    const startTime = Date.now();
+    const minLoadingTime = 3000;
+
     const state = get();
     const day = state.day;
     const assets = state.assets;
@@ -345,6 +357,14 @@ export const useStore = create<RootStore>((set, get, store) => ({
 
     // Save after tick processing and WAIT for it to complete
     await state.saveGame();
+
+    // Ensure minimum loading time has elapsed
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < minLoadingTime) {
+      await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+    }
+
+    set({ isProcessingDay: false });
   },
 
   // Load game state from IndexedDB

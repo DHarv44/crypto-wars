@@ -15,8 +15,11 @@ import { executeTick } from '../engine/tick';
 import { executeTrade } from '../engine/api';
 import { saveGame, loadGame } from '../utils/persistence';
 import { setActiveProfileId } from '../utils/storage';
-import { rollDailyNews, applyNewsImpact, checkFakeNewsDebunks, reverseFakeNewsImpact } from '../engine/news';
+import { rollDailyNews, applyNewsImpact, checkFakeNewsDebunks, reverseFakeNewsImpact, generateRugWarnings, generateVibeHints } from '../engine/news';
 import { MIN_PRICE, TRADING_FEE } from '../utils/format';
+import { applyRugBleed } from '../engine/pricing';
+import { calculateDynamicVolume } from '../engine/volume';
+import { shouldLaunchCoin, generateNewCoin, getDaysSinceLastLaunch, generateLaunchHypeNews } from '../engine/coinLaunch';
 
 export type RootStore = EngineSlice & MarketSlice & PlayerSlice & EventsSlice & TradingSlice & OpsSlice & OffersSlice & InfluencerSlice & OnboardingSlice & SocialSlice & UnlocksSlice & NewsSlice & {
   // Dirty flag for auto-save optimization
@@ -25,11 +28,13 @@ export type RootStore = EngineSlice & MarketSlice & PlayerSlice & EventsSlice & 
 
   // Day processing state
   isProcessingDay: boolean;
+  isSimulating: boolean;  // Flag to suppress UI updates during backfill simulation
 
   // Orchestration actions
   initGame: () => Promise<void>;
   processTick: () => void;  // NEW: Runs every game second (intra-day price updates)
   processDay: () => Promise<void>;  // Runs when day advances (daily events, news, etc)
+  simulateBackfill: (days: number) => Promise<void>;  // Run simulation for N days to generate real data
   loadGame: () => Promise<void>;
   saveGame: () => Promise<void>;
 };
@@ -55,6 +60,7 @@ export const useStore = create<RootStore>((set, get, store) => ({
 
   // Day processing state
   isProcessingDay: false,
+  isSimulating: false,
 
   // Orchestration
   initGame: async () => {
@@ -89,6 +95,23 @@ export const useStore = create<RootStore>((set, get, store) => ({
     const day = state.day || 1;
     const assets = state.assets;
 
+    // Don't process ticks until trading has started
+    if (!state.tradingStarted) {
+      return;
+    }
+
+    // Check if market should close (timer expired)
+    const timeExpired = state.canAdvanceDay();
+    if (timeExpired && state.marketOpen) {
+      set({ marketOpen: false });
+      return;
+    }
+
+    // Stop processing if market is closed
+    if (!state.marketOpen) {
+      return;
+    }
+
     // Increment tick counter
     set({ tick: tick + 1 });
 
@@ -96,12 +119,35 @@ export const useStore = create<RootStore>((set, get, store) => ({
     const assetUpdates: Record<string, Partial<any>> = {};
 
     for (const asset of Object.values(assets)) {
+      // Handle gradual rug pull bleed
+      if (asset.rugged && asset.rugStartTick !== undefined) {
+        // Apply bleed every ~30 ticks (every 30 seconds during 30min day)
+        const ticksSinceRug = tick + 1 - asset.rugStartTick;
+        if (ticksSinceRug % 30 === 0) {
+          const newPrice = applyRugBleed(asset, tick + 1);
+          assetUpdates[asset.id] = {
+            ...assetUpdates[asset.id],
+            price: newPrice,
+          };
+        }
+        continue; // Skip normal trading for rugged assets
+      }
+
       if (asset.rugged) continue;
 
-      // Calculate trade probability based on volume (0-1 scale)
+      // Calculate dynamic volume based on multiple factors
+      const dynamicVolume = calculateDynamicVolume(
+        asset,
+        state.marketVibe,
+        tick + 1,
+        1800, // ticks per day
+        state.vibeTargetAssets
+      );
+
+      // Calculate trade probability based on dynamic volume (0-1 scale)
       // Higher volume = more frequent trades
       // Base chance: 10% at volume=0, up to 90% at volume=1
-      const tradeChance = 0.1 + (asset.volume * 0.8);
+      const tradeChance = 0.1 + (dynamicVolume * 0.8);
       const rng = Math.random();
 
       if (rng < tradeChance) {
@@ -120,6 +166,7 @@ export const useStore = create<RootStore>((set, get, store) => ({
         // Get or create current day's candle in today array
         const priceHistory = asset.priceHistory || {
           today: [],
+          yesterday: [],
           d5: [],
           m1: [],
           y1: [],
@@ -243,18 +290,25 @@ export const useStore = create<RootStore>((set, get, store) => ({
   // Process day advancement (called when day changes)
   // Handles daily events, news, offers, etc
   processDay: async () => {
-    set({ isProcessingDay: true });
-
-    // Wait for fade animation (0.5s as defined in CSS)
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Ensure loading screen shows for at least 3 seconds total
-    const startTime = Date.now();
-    const minLoadingTime = 3000;
-
     const state = get();
+
+    // Skip UI updates during simulation
+    if (!state.isSimulating) {
+      set({ isProcessingDay: true });
+
+      // Wait for fade animation (0.5s as defined in CSS)
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Ensure loading screen shows for at least 3 seconds total (only during normal gameplay)
+    const startTime = Date.now();
+    const minLoadingTime = state.isSimulating ? 0 : 3000;
     const day = state.day;
     const assets = state.assets;
+
+    // Select vibe target assets for the new day's market vibe
+    const vibeTargets = state.selectVibeTargets(state.marketVibe, assets);
+    set({ vibeTargetAssets: vibeTargets });
 
     // Calculate remaining ticks in the day and simulate them
     const ticksPerDay = 1800;
@@ -322,13 +376,82 @@ export const useStore = create<RootStore>((set, get, store) => ({
     // Check for unlocks
     state.checkUnlocks();
 
+    // Generate rug pull warnings (20% chance, 1-2 warnings)
+    const { articles: warningArticles, warnedAssets } = generateRugWarnings(day, assets);
+
+    // Mark warned assets
+    const warningUpdates: Record<string, Partial<any>> = {};
+    for (const assetId of warnedAssets) {
+      warningUpdates[assetId] = { rugWarned: true };
+    }
+    if (Object.keys(warningUpdates).length > 0) {
+      state.applyTickUpdates(warningUpdates);
+    }
+
     // Roll daily news (2-5 articles)
     const dailyNews = rollDailyNews(day, assets);
-    state.addArticles(dailyNews);
+
+    // Generate predictive hints about tomorrow's vibe (30% chance)
+    const nextDayVibe = state.rollMarketVibe(); // Peek at tomorrow's vibe
+    const vibeHintArticles = generateVibeHints(day, nextDayVibe, assets);
+
+    // Check if we should launch a new coin today
+    const daysSinceLastLaunch = getDaysSinceLastLaunch(assets, day);
+    const shouldLaunch = shouldLaunchCoin(day, state.marketVibe, daysSinceLastLaunch);
+
+    let launchArticles: any[] = [];
+    if (shouldLaunch) {
+      // Generate new coin
+      const newCoin = generateNewCoin(day);
+
+      // Add to market
+      state.addAsset(newCoin);
+
+      // Generate launch announcement news
+      launchArticles.push({
+        id: `launch_${day}_${newCoin.symbol}`,
+        day,
+        assetId: newCoin.id,
+        assetSymbol: newCoin.symbol,
+        headline: `🎉 NEW LAUNCH: ${newCoin.symbol} debuts on exchange!`,
+        sentiment: 'bullish',
+        weight: 80,
+        category: 'launch',
+        isFake: false,
+        impactRealized: false,
+      });
+
+      // Push event to feed
+      state.pushEvent({
+        tick: day,
+        type: 'info',
+        message: `🚀 NEW COIN: ${newCoin.symbol} (${newCoin.name}) just launched!`,
+        severity: 'success',
+      });
+    }
+
+    // Check if we should generate hype for a coin launching in 2-3 days
+    const willLaunchSoon = shouldLaunchCoin(day + 2, nextDayVibe, daysSinceLastLaunch + 2);
+    let hypeArticles: any[] = [];
+    if (willLaunchSoon && daysSinceLastLaunch > 1) {
+      // Pre-generate the coin symbol that will launch in 2 days
+      const upcomingCoin = generateNewCoin(day + 2);
+      hypeArticles = generateLaunchHypeNews(day, upcomingCoin.symbol, 2);
+    }
+
+    // Combine all articles
+    const allDailyArticles = [
+      ...warningArticles,
+      ...dailyNews,
+      ...vibeHintArticles,
+      ...launchArticles,
+      ...hypeArticles,
+    ];
+    state.addArticles(allDailyArticles);
 
     // Apply news impact to affected assets
     const newsUpdates: Record<string, Partial<any>> = {};
-    for (const article of dailyNews) {
+    for (const article of allDailyArticles) {
       const asset = assets[article.assetId];
       if (asset) {
         const impact = applyNewsImpact(asset, [article]);
@@ -386,18 +509,54 @@ export const useStore = create<RootStore>((set, get, store) => ({
     // Clean old news (keep last 200 days)
     state.clearOldNews(day - 200);
 
+    // Apply pre-market price adjustment (overnight gap up/down based on vibe)
+    const preMarketUpdates: Record<string, Partial<any>> = {};
+    for (const asset of Object.values(state.assets)) {
+      if (asset.rugged) continue; // Skip rugged assets
+
+      const yesterday = asset.priceHistory?.yesterday;
+      if (!yesterday || yesterday.length === 0) continue;
+
+      const yesterdayClose = yesterday[yesterday.length - 1].close;
+
+      // Calculate overnight gap based on market vibe
+      let gapPercent = 0;
+      switch (state.marketVibe) {
+        case 'moonshot':
+          gapPercent = Math.random() * 0.05 + 0.02; // +2% to +7% gap up
+          break;
+        case 'bloodbath':
+          gapPercent = -(Math.random() * 0.05 + 0.02); // -2% to -7% gap down
+          break;
+        case 'memefrenzy':
+          gapPercent = (Math.random() - 0.5) * 0.04; // -2% to +2% random
+          break;
+        case 'rugseason':
+          gapPercent = -(Math.random() * 0.03); // 0% to -3% gap down
+          break;
+        case 'whalewar':
+          gapPercent = (Math.random() - 0.5) * 0.06; // -3% to +3% volatile
+          break;
+        default: // normie
+          gapPercent = (Math.random() - 0.5) * 0.015; // -0.75% to +0.75% small gap
+      }
+
+      const newPrice = yesterdayClose * (1 + gapPercent);
+      preMarketUpdates[asset.id] = { price: newPrice };
+    }
+
+    // Apply pre-market gaps
+    if (Object.keys(preMarketUpdates).length > 0) {
+      state.applyTickUpdates(preMarketUpdates);
+    }
+
     // Aggregate today's trades into resolution arrays (pop/push pattern)
     const priceHistoryUpdates: Record<string, Partial<any>> = {};
     for (const asset of Object.values(state.assets)) {
       const priceHistory = asset.priceHistory;
       if (!priceHistory || !priceHistory.today || priceHistory.today.length === 0) continue;
 
-      // Calculate 3 aggregated candles from today (divide into thirds)
       const today = priceHistory.today;
-      const thirdSize = Math.ceil(today.length / 3);
-      const third1 = today.slice(0, thirdSize);
-      const third2 = today.slice(thirdSize, thirdSize * 2);
-      const third3 = today.slice(thirdSize * 2);
 
       const aggregateCandles = (candles: any[]) => {
         if (candles.length === 0) return null;
@@ -411,17 +570,45 @@ export const useStore = create<RootStore>((set, get, store) => ({
         };
       };
 
-      const newD5Candles = [
-        aggregateCandles(third1),
-        aggregateCandles(third2),
-        aggregateCandles(third3),
-      ].filter(c => c !== null);
+      // Aggregate today into 6 candles (5-minute periods, like Google Finance 5D)
+      const candlesPerDay = 6;
+      const ticksPerCandle = 300; // 1800 ticks / 6 candles
+      const aggregatedCandles: any[] = [];
 
-      // Calculate 1 daily candle from today
+      if (today.length > 0) {
+        // Group today's trades by 5-minute periods and aggregate into OHLCV
+        for (let i = 0; i < candlesPerDay; i++) {
+          const startTick = i * ticksPerCandle;
+          const endTick = startTick + ticksPerCandle;
+
+          // Find all trades in this period
+          const periodTrades = today.filter((t: any) => t.tick >= startTick && t.tick < endTick);
+
+          if (periodTrades.length > 0) {
+            aggregatedCandles.push({
+              tick: startTick,
+              day,
+              open: periodTrades[0].open,
+              high: Math.max(...periodTrades.map((t: any) => t.high)),
+              low: Math.min(...periodTrades.map((t: any) => t.low)),
+              close: periodTrades[periodTrades.length - 1].close,
+            });
+          }
+        }
+      }
+
+      // Calculate 1 daily candle from all trades (for m1, y1, y5)
       const dailyCandle = aggregateCandles(today);
 
-      // Pop oldest from d5 (remove 3 candles from day 6) and push today's 3
-      const newD5 = [...priceHistory.d5.slice(3), ...newD5Candles];
+      // Save today's aggregated candles to yesterday (for 1D context)
+      const newYesterday = aggregatedCandles.map(c => ({ ...c, day: day - 1 })); // Mark as yesterday
+
+      // Pop oldest day from d5 (remove 6 candles from day 6) and push today's 6 candles
+      const candlesPerDayD5 = 6;
+      const oldestDayStart = priceHistory.d5.findIndex((c: any) => c.day === day - 5);
+      const oldestDayEnd = priceHistory.d5.findIndex((c: any) => c.day === day - 4);
+      const candlesToRemove = oldestDayEnd >= 0 ? oldestDayEnd : (oldestDayStart >= 0 ? candlesPerDayD5 : 0);
+      const newD5 = [...priceHistory.d5.slice(candlesToRemove), ...aggregatedCandles];
 
       // Pop oldest from m1 (remove day 31) and push today's 1
       const newM1 = dailyCandle ? [...priceHistory.m1.slice(1), dailyCandle] : priceHistory.m1;
@@ -438,6 +625,7 @@ export const useStore = create<RootStore>((set, get, store) => ({
       priceHistoryUpdates[asset.id] = {
         priceHistory: {
           today: [], // Clear for next day
+          yesterday: newYesterday, // Save today's candles as yesterday
           d5: newD5,
           m1: newM1,
           y1: newY1,
@@ -454,16 +642,46 @@ export const useStore = create<RootStore>((set, get, store) => ({
     // Save after tick processing and WAIT for it to complete
     await state.saveGame();
 
-    // Ensure minimum loading time has elapsed
-    const elapsedTime = Date.now() - startTime;
-    if (elapsedTime < minLoadingTime) {
-      await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+    // Ensure minimum loading time has elapsed (only during normal gameplay)
+    if (!state.isSimulating) {
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < minLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+      }
+      set({ isProcessingDay: false });
     }
-
-    set({ isProcessingDay: false });
   },
 
   // Load game state from IndexedDB
+  // Simulate N days of gameplay to backfill data (prices, trades, news, events)
+  simulateBackfill: async (days: number) => {
+    console.log(`[rootStore] simulateBackfill START - ${days} days`);
+    const state = get();
+
+    // Enable simulation mode and trading to suppress UI updates
+    set({ isSimulating: true, tradingStarted: true });
+
+    const ticksPerDay = 1800;
+
+    for (let d = 0; d < days; d++) {
+      console.log(`[rootStore] Simulating day ${d + 1}/${days}...`);
+
+      // Simulate all ticks for the day
+      for (let t = 0; t < ticksPerDay; t++) {
+        state.processTick();
+      }
+
+      // Advance to next day
+      set({ day: state.day + 1, tick: 0 });
+      await state.processDay();
+    }
+
+    // Reset to day 1 after backfill, keep all the generated history, disable trading
+    set({ day: 1, tick: 0, isSimulating: false, tradingStarted: false });
+    await state.saveGame();
+    console.log('[rootStore] simulateBackfill COMPLETE - reset to day 1');
+  },
+
   loadGame: async () => {
     console.log('[rootStore] loadGame START');
     const savedState = await loadGame();

@@ -60,14 +60,52 @@ export function applyOracleHack(asset: Asset): number {
 }
 
 /**
- * Rug pull: price crashes hard
+ * Rug pull: Initial 20-30% crash when rug starts
  */
-export function applyRug(asset: Asset): { price: number; liquidity: number } {
+export function applyRugInitial(asset: Asset): { price: number; liquidity: number } {
   const rng = getRNG();
-  const priceMultiplier = rng.range(0.01, 0.2);
-  const liquidityMultiplier = rng.range(0.05, 0.4);
+  const priceMultiplier = rng.range(0.7, 0.8); // 20-30% initial drop
+  const liquidityMultiplier = rng.range(0.6, 0.8); // Some liquidity pulled
   return {
     price: asset.price * priceMultiplier,
     liquidity: asset.liquidityUSD * liquidityMultiplier,
   };
+}
+
+/**
+ * Gradual rug pull bleed during the day
+ * Intensity based on asset tier (shitcoins bleed faster)
+ */
+export function applyRugBleed(asset: Asset, tick: number): number {
+  const rng = getRNG();
+
+  // Base drop range: 3-15% per bleed
+  let minDrop = 0.03;
+  let maxDrop = 0.15;
+
+  // Adjust based on tier
+  if (asset.tier === 'shitcoin') {
+    minDrop = 0.08;
+    maxDrop = 0.20; // Shitcoins bleed harder
+  } else if (asset.tier === 'midcap') {
+    minDrop = 0.03;
+    maxDrop = 0.12;
+  }
+
+  // Occasional "false hope" recovery (10% chance)
+  if (rng.chance(0.1)) {
+    // Small bounce back
+    return asset.price * rng.range(1.02, 1.08); // 2-8% recovery
+  }
+
+  // Normal bleed
+  const dropMultiplier = 1 - rng.range(minDrop, maxDrop);
+  return Math.max(0.0001, asset.price * dropMultiplier);
+}
+
+/**
+ * Legacy rug pull function (kept for compatibility)
+ */
+export function applyRug(asset: Asset): { price: number; liquidity: number } {
+  return applyRugInitial(asset);
 }

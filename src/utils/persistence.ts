@@ -14,6 +14,9 @@ interface GameState {
   devMode: boolean;
   dayStartTimestamp: number;
   realTimeDayDuration: number;
+  tradingStarted: boolean;
+  marketVibe: string;
+  vibeTargetAssets?: string[];
 
   // Player
   cashUSD: number;

@@ -1,4 +1,4 @@
-import { Asset, NewsArticle } from './types';
+import { Asset, NewsArticle, MarketVibe } from './types';
 import { getRNG } from './rng';
 import newsSeedData from './news.seed.json';
 
@@ -159,6 +159,194 @@ export function reverseFakeNewsImpact(
   return {
     socialHype: Math.max(0, Math.min(1, asset.socialHype + adjustment)),
   };
+}
+
+/**
+ * Generate rug pull warning news for risky assets
+ * Returns warning articles that mark assets as warned
+ */
+export function generateRugWarnings(
+  day: number,
+  assets: Record<string, Asset>
+): { articles: NewsArticle[]; warnedAssets: string[] } {
+  const rng = getRNG();
+  const articles: NewsArticle[] = [];
+  const warnedAssets: string[] = [];
+
+  // Find risky shitcoins that aren't already warned or rugged
+  const riskyAssets = Object.values(assets).filter(
+    (a) =>
+      a.tier === 'shitcoin' &&
+      !a.rugged &&
+      !a.rugWarned &&
+      (a.devTokensPct > 40 || a.auditScore < 0.3)
+  );
+
+  if (riskyAssets.length === 0) return { articles, warnedAssets };
+
+  // 20% chance to generate 1-2 warnings per day
+  if (!rng.chance(0.2)) return { articles, warnedAssets };
+
+  const numWarnings = rng.int(1, Math.min(2, riskyAssets.length));
+
+  for (let i = 0; i < numWarnings; i++) {
+    const asset = rng.pick(riskyAssets);
+    riskyAssets.splice(riskyAssets.indexOf(asset), 1); // Remove to avoid duplicates
+
+    const warningTemplates = [
+      `🚨 Community members raise concerns about ${asset.symbol} tokenomics`,
+      `⚠️ ${asset.symbol} developers moving large amounts to exchanges`,
+      `🔍 Suspicious wallet activity detected in ${asset.symbol}`,
+      `📊 ${asset.symbol} liquidity pool showing signs of drainage`,
+      `🚩 Anonymous devs behind ${asset.symbol} raise red flags`,
+      `⚠️ ${asset.symbol} audit reveals critical vulnerabilities`,
+    ];
+
+    articles.push({
+      id: `warning_${day}_${i}_${Date.now()}`,
+      day,
+      assetId: asset.id,
+      assetSymbol: asset.symbol,
+      headline: rng.pick(warningTemplates).replace('${asset.symbol}', asset.symbol),
+      sentiment: 'bearish',
+      weight: 60,
+      category: 'security',
+      isFake: false,
+      impactRealized: false,
+    });
+
+    warnedAssets.push(asset.id);
+  }
+
+  return { articles, warnedAssets };
+}
+
+/**
+ * Generate predictive news hints about upcoming market vibe
+ * 30% chance to generate 1-2 hints, some may be fake
+ */
+export function generateVibeHints(
+  day: number,
+  nextDayVibe: MarketVibe,
+  assets: Record<string, Asset>
+): NewsArticle[] {
+  const rng = getRNG();
+  const articles: NewsArticle[] = [];
+
+  // 30% chance to generate hints
+  if (!rng.chance(0.3)) return articles;
+
+  const vibeHintTemplates: Record<MarketVibe, { real: string[]; fake: string[] }> = {
+    moonshot: {
+      real: [
+        '📈 Analysts predict major rally in select altcoins tomorrow',
+        '🚀 Whale accumulation signals potential moonshot brewing',
+        '💎 Technical indicators showing bullish divergence across markets',
+      ],
+      fake: [
+        '📉 Market correction expected across all sectors',
+        '⚠️ Regulatory crackdown rumors spreading',
+      ],
+    },
+    bloodbath: {
+      real: [
+        '📉 Major liquidation event predicted for tomorrow',
+        '🔴 Market sentiment turning bearish across exchanges',
+        '⚠️ Analysts warn of incoming market downturn',
+      ],
+      fake: [
+        '📈 Bull run continuation expected',
+        '🚀 New institutional buyers entering market',
+      ],
+    },
+    rugseason: {
+      real: [
+        '🚨 Security researchers warn of increased rug pull activity',
+        '⚠️ Multiple projects showing suspicious dev behavior',
+        '🔍 Community urges caution with new token launches',
+      ],
+      fake: [
+        '✅ New auditing standards to protect investors',
+        '🛡️ Regulatory safeguards being implemented',
+      ],
+    },
+    whalewar: {
+      real: [
+        '🐋 Large wallets battling for market dominance',
+        '⚡ Extreme volatility expected from whale activity',
+        '📊 Competing institutions driving massive swings',
+      ],
+      fake: [
+        '💤 Market expected to remain stable and boring',
+        '📉 Low volume day predicted',
+      ],
+    },
+    memefrenzy: {
+      real: [
+        '🔥 Social media buzz reaching fever pitch',
+        '📱 Viral trends driving unprecedented hype',
+        '🎭 Meme culture taking over crypto markets',
+      ],
+      fake: [
+        '📊 Fundamentals-based trading to dominate',
+        '🎓 Serious investors returning to market',
+      ],
+    },
+    normie: {
+      real: [
+        '💤 Standard trading day expected tomorrow',
+        '📊 Markets showing typical volatility patterns',
+        '⏰ Business as usual for crypto traders',
+      ],
+      fake: [
+        '🚀 Major catalyst event expected',
+        '⚡ Unprecedented market action incoming',
+      ],
+    },
+  };
+
+  const templates = vibeHintTemplates[nextDayVibe];
+  const numHints = rng.int(1, 2);
+  const allVibes: MarketVibe[] = ['moonshot', 'bloodbath', 'memefrenzy', 'rugseason', 'whalewar', 'normie'];
+
+  for (let i = 0; i < numHints; i++) {
+    // 70% chance for real hint, 30% for fake (red herring)
+    const isFake = rng.chance(0.3);
+
+    let headline: string;
+    let predictedVibe: MarketVibe = nextDayVibe;
+
+    if (isFake) {
+      // Fake news: pick a DIFFERENT vibe's real templates to mislead
+      const otherVibes = allVibes.filter(v => v !== nextDayVibe);
+      const fakeVibe = rng.pick(otherVibes);
+      headline = rng.pick(vibeHintTemplates[fakeVibe].real);
+      predictedVibe = fakeVibe; // Store which vibe the fake news is actually predicting
+    } else {
+      // Real news: pick from correct vibe's real templates
+      headline = rng.pick(templates.real);
+    }
+
+    // Pick a random asset for context (not critical to the vibe)
+    const assetList = Object.values(assets).filter((a) => !a.rugged);
+    const asset = rng.pick(assetList);
+
+    articles.push({
+      id: `vibe_hint_${day}_${i}_${Date.now()}`,
+      day,
+      assetId: asset?.id || 'btc',
+      assetSymbol: asset?.symbol || 'BTC',
+      headline,
+      sentiment: nextDayVibe === 'bloodbath' || nextDayVibe === 'rugseason' ? 'bearish' : 'bullish',
+      weight: 40,
+      category: 'prediction',
+      isFake,
+      predictedVibe, // Add this field
+      impactRealized: false,
+    });
+  }
+
+  return articles;
 }
 
 /**

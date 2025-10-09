@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
 import { Asset } from '../engine/types';
 import seedData from '../engine/assets.seed.json';
+import { classifyAssetTier } from '../engine/tiers';
 
 export interface MarketSlice {
   assets: Record<string, Asset>;
@@ -45,6 +46,9 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
         flagged: false,
         rugged: false,
         volume: 0.5, // Default volume (mid-range trading frequency)
+        tier: 'midcap', // Will be classified below
+        momentum: 0,
+        narrative: null,
         priceHistory: {
           today: [],
           d5: [],
@@ -53,6 +57,8 @@ export const createMarketSlice: StateCreator<MarketSlice> = (set, get) => ({
           y5: [],
         },
       };
+      // Classify asset tier based on liquidity and audit score
+      asset.tier = classifyAssetTier(asset);
       assets[asset.id] = asset;
       list.push(asset.id);
     }

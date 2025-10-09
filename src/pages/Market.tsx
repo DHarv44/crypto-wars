@@ -6,6 +6,7 @@ import { calculateRugProbability } from '../engine/risk';
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import BuySellModal from '../features/trading/BuySellModal';
 import { useNavigate } from 'react-router-dom';
+import MarketForecast from '../components/MarketForecast';
 
 type SortField = 'symbol' | 'price' | 'change' | 'rugRisk' | 'liquidity' | 'auditScore';
 type SortDirection = 'asc' | 'desc';
@@ -109,7 +110,9 @@ export default function Market() {
         MARKET
       </Title>
 
-      <Paper p="md" withBorder mb="lg">
+      <MarketForecast />
+
+      <Paper p="md" withBorder mb="lg" mt="lg">
         <Group>
           <TextInput
             placeholder="Search symbol or name..."

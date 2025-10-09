@@ -3,6 +3,16 @@
 export type EngineStatus = 'idle' | 'running' | 'paused';
 export type TickSpeed = 1 | 2 | 4;
 
+export type AssetTier = 'bluechip' | 'midcap' | 'shitcoin';
+
+export type MarketVibe =
+  | 'moonshot'    // 1-3 random coins selected for major pumps (10%)
+  | 'bloodbath'   // Market-wide crash, everything bleeds (8%)
+  | 'rugseason'   // High rug probability (3%)
+  | 'whalewar'    // Volatile swings, competing whales (3%)
+  | 'normie'      // Normal boring day (61%)
+  | 'memefrenzy'; // Social hype drives everything (15%)
+
 export interface Asset {
   id: string;
   symbol: string;
@@ -19,6 +29,11 @@ export interface Asset {
   rugged: boolean;
   isPlayerToken?: boolean;
   volume: number; // Daily trading volume (0-1 scale)
+  tier: AssetTier; // Asset tier for rug pull protection
+  rugWarned?: boolean; // Has received warning news before rug
+  rugStartTick?: number; // When rug pull began (for gradual mechanics)
+  momentum?: number; // -1 to 1 (bearish to bullish)
+  narrative?: 'moon' | 'stable' | 'rug' | null; // Current narrative arc
   // Price history for charts (pre-aggregated by resolution)
   priceHistory?: PriceHistoryByResolution;
 }
@@ -34,11 +49,12 @@ export interface PriceCandle {
 }
 
 export interface PriceHistoryByResolution {
-  today: PriceCandle[];   // Intra-day trades (variable length)
-  d5: PriceCandle[];      // 15 candles (3 per day × 5 days)
-  m1: PriceCandle[];      // 30 candles (1 per day × 30 days)
-  y1: PriceCandle[];      // 365 candles (1 per day × 365 days)
-  y5: PriceCandle[];      // ~260 candles (1 per week × 52 weeks × 5 years)
+  today: PriceCandle[];      // Intra-day trades (variable length, live tick data)
+  yesterday: PriceCandle[];  // Previous day's aggregated candles (6 candles for context)
+  d5: PriceCandle[];         // Last 5 days (6 candles per day = 30 total)
+  m1: PriceCandle[];         // 30 candles (1 per day × 30 days)
+  y1: PriceCandle[];         // 365 candles (1 per day × 365 days)
+  y5: PriceCandle[];         // ~260 candles (1 per week × 52 weeks × 5 years)
 }
 
 export interface LPPosition {
@@ -186,6 +202,7 @@ export interface NewsArticle {
   weight: number; // 0-100
   category: string;
   isFake: boolean;
+  predictedVibe?: MarketVibe; // For prediction news - which vibe is being predicted
   debunkedDay?: number; // When fake news was revealed
   impactRealized: boolean; // Did it actually move the price?
 }

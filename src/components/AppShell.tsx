@@ -1,6 +1,6 @@
 import { AppShell as MantineAppShell, NavLink, Text, Stack, HoverCard } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { IconChartLine, IconHome, IconBuildingBank, IconRocket, IconUsers, IconChartBar, IconLock } from '@tabler/icons-react';
+import { IconChartLine, IconHome, IconBuildingBank, IconRocket, IconUsers, IconChartBar, IconLock, IconNews } from '@tabler/icons-react';
 import { ReactNode } from 'react';
 import Header from './Header';
 import { useStore } from '../stores/rootStore';
@@ -19,6 +19,7 @@ export default function AppShell({ children }: AppShellProps) {
     { path: '/', label: 'Dashboard', icon: IconHome },
     { path: '/market', label: 'Market', icon: IconChartLine },
     { path: '/social', label: 'Social', icon: IconUsers },
+    { path: '/news', label: 'News', icon: IconNews },
   ];
 
   // Gated features - only show if unlocked

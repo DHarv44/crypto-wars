@@ -1,8 +1,30 @@
 import { Paper, Group, Text } from '@mantine/core';
 import { useStore } from '../stores/rootStore';
 import { formatPercent, getChangeColor } from '../utils/format';
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const TickerItem = memo(({ ticker, onClick }: { ticker: any; onClick: () => void }) => (
+  <Group
+    gap="xs"
+    style={{
+      whiteSpace: 'nowrap',
+      flexShrink: 0,
+      cursor: 'pointer',
+    }}
+    onClick={onClick}
+  >
+    <Text size="sm" fw={700} c="terminal.5" ff="monospace">
+      {ticker.symbol}
+    </Text>
+    <Text size="sm" c={ticker.color} ff="monospace">
+      ${ticker.price.toFixed(ticker.price < 1 ? 6 : 2)}
+    </Text>
+    <Text size="sm" c={ticker.color} ff="monospace">
+      {formatPercent(ticker.change)}
+    </Text>
+  </Group>
+));
 
 export default function TickerTape() {
   const { assets, list } = useStore();
@@ -42,39 +64,25 @@ export default function TickerTape() {
           display: 'flex',
           gap: '2rem',
           animation: 'tickerScroll 21s linear infinite',
+          willChange: 'transform',
         }}
       >
         {/* Duplicate for seamless loop */}
         {[...tickers, ...tickers].map((ticker, idx) => (
-          <Group
-            key={idx}
-            gap="xs"
-            style={{
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              cursor: 'pointer',
-            }}
+          <TickerItem
+            key={`${ticker.id}-${idx}`}
+            ticker={ticker}
             onClick={() => navigate(`/symbol/${ticker.symbol}`)}
-          >
-            <Text size="sm" fw={700} c="terminal.5" ff="monospace">
-              {ticker.symbol}
-            </Text>
-            <Text size="sm" c={ticker.color} ff="monospace">
-              ${ticker.price.toFixed(ticker.price < 1 ? 6 : 2)}
-            </Text>
-            <Text size="sm" c={ticker.color} ff="monospace">
-              {formatPercent(ticker.change)}
-            </Text>
-          </Group>
+          />
         ))}
       </div>
       <style>{`
         @keyframes tickerScroll {
           0% {
-            transform: translateX(0);
+            transform: translate3d(0, 0, 0);
           }
           100% {
-            transform: translateX(-50%);
+            transform: translate3d(-50%, 0, 0);
           }
         }
       `}</style>

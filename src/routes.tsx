@@ -7,6 +7,7 @@ import Offers from './pages/Offers';
 import Influencer from './pages/Influencer';
 import Reports from './pages/Reports';
 import Social from './pages/Social';
+import News from './pages/News';
 
 export function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export function AppRoutes() {
       <Route path="/market" element={<Market />} />
       <Route path="/symbol/:symbol" element={<AssetDetail />} />
       <Route path="/social" element={<Social />} />
+      <Route path="/news" element={<News />} />
       <Route path="/ops" element={<Ops />} />
       <Route path="/offers" element={<Offers />} />
       <Route path="/influencer" element={<Influencer />} />

@@ -9,7 +9,7 @@ import { Loader, Center, Overlay, Stack, Text } from '@mantine/core';
 import { initCache } from './data/storageCache';
 
 function App() {
-  const { hasCompletedOnboarding, completeOnboarding, loadGame, processTick, saveGame, isProcessingDay } = useStore();
+  const { hasCompletedOnboarding, completeOnboarding, loadGame, processTick, saveGame, isProcessingDay, tradingStarted } = useStore();
   const [isReady, setIsReady] = useState(false);
 
   // Initialize app on mount
@@ -41,16 +41,16 @@ function App() {
     initialize();
   }, []);
 
-  // Run processTick every second when game is active
+  // Run processTick every second when game is active AND trading has started
   useEffect(() => {
-    if (!isReady || !hasCompletedOnboarding) return;
+    if (!isReady || !hasCompletedOnboarding || !tradingStarted) return;
 
     const interval = setInterval(() => {
       processTick();
     }, 1000); // Every 1 second = 1 in-game tick
 
     return () => clearInterval(interval);
-  }, [isReady, hasCompletedOnboarding, processTick]);
+  }, [isReady, hasCompletedOnboarding, tradingStarted, processTick]);
 
   // Auto-save every 5 seconds (with dirty flag check)
   useEffect(() => {

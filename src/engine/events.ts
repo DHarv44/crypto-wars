@@ -7,7 +7,8 @@ import {
   calculateWhaleBuybackProbability,
   calculateFreezeProbability,
 } from './risk';
-import { applyRug, applyWhaleBuyback, applyOracleHack } from './pricing';
+import { applyRugInitial, applyWhaleBuyback, applyOracleHack } from './pricing';
+import { canAssetRug, canAssetExitScam } from './tiers';
 
 let eventIdCounter = 0;
 
@@ -37,17 +38,21 @@ export function processTickEvents(
 
   const eventMultiplier = devMode ? 5 : 1; // Boost event rates in dev mode
 
-  // 1. Rug pulls
+  // 1. Rug pulls (only if warned AND tier allows it)
   for (const asset of Object.values(assets)) {
-    if (asset.rugged || asset.flagged) continue;
+    if (asset.rugged || asset.flagged || !canAssetRug(asset)) continue;
+
+    // Require warning before rug (news/alert must have happened)
+    if (!asset.rugWarned) continue;
 
     const rugProb = calculateRugProbability(asset) * eventMultiplier;
     if (rng.chance(rugProb)) {
-      const result = applyRug(asset);
+      const result = applyRugInitial(asset);
       assetUpdates[asset.id] = {
         price: result.price,
         liquidityUSD: result.liquidity,
         rugged: true,
+        rugStartTick: tick, // Mark when rug started
         flagged: true,
       };
 
@@ -56,20 +61,22 @@ export function processTickEvents(
         tick,
         type: 'rug',
         assetId: asset.id,
-        message: `🚨 RUG PULL: ${asset.symbol} crashed ${((1 - result.price / asset.price) * 100).toFixed(1)}%!`,
+        message: `🚨 RUG PULL INITIATED: ${asset.symbol} crashed ${((1 - result.price / asset.price) * 100).toFixed(1)}%! Price bleeding...`,
         severity: 'danger',
         metadata: { oldPrice: asset.price, newPrice: result.price },
       });
     }
   }
 
-  // 2. Exit scams
+  // 2. Exit scams (extremely rare, shitcoins only, instant drop to near zero)
   for (const asset of Object.values(assets)) {
-    if (asset.rugged) continue;
+    if (asset.rugged || !canAssetExitScam(asset)) continue;
 
-    const exitScamProb = calculateExitScamProbability(asset) * eventMultiplier;
+    // Extremely rare: 0.001% base chance (0.00001)
+    const exitScamProb = 0.00001 * eventMultiplier;
     if (rng.chance(exitScamProb)) {
       assetUpdates[asset.id] = {
+        price: asset.price * 0.001, // Drop to 0.1% of value
         liquidityUSD: 0,
         rugged: true,
         flagged: true,
@@ -80,7 +87,7 @@ export function processTickEvents(
         tick,
         type: 'exit_scam',
         assetId: asset.id,
-        message: `💀 EXIT SCAM: ${asset.symbol} devs drained all liquidity!`,
+        message: `💀 EXIT SCAM: ${asset.symbol} devs vanished with all funds!`,
         severity: 'danger',
       });
 

@@ -453,6 +453,56 @@ function generate1MData(template: AssetTemplate, seed: number, dailyData: OHLC[]
 }
 
 /**
+ * Generate 6 aggregated candles from a daily OHLC (5-minute periods for 30-minute day)
+ * Proper OHLCV aggregation like Google Finance 5D charts
+ */
+function generateIntradayCandles(dailyCandle: PriceCandle, seed: number): PriceCandle[] {
+  const rng = initRNG(seed + dailyCandle.day);
+  const candles: PriceCandle[] = [];
+
+  const priceRange = dailyCandle.high - dailyCandle.low;
+  const ticksPerDay = 1800;
+  const candlesPerDay = 6; // 6 candles = 6 × 5 minutes = 30 minutes
+  const ticksPerCandle = ticksPerDay / candlesPerDay; // 300 ticks per candle
+
+  // Generate 1800 intraday ticks
+  const allTicks: number[] = [];
+  let currentPrice = dailyCandle.open;
+
+  for (let tick = 0; tick < ticksPerDay; tick++) {
+    const t = tick / ticksPerDay;
+
+    // Interpolate toward close price with noise
+    const targetPrice = dailyCandle.open + (dailyCandle.close - dailyCandle.open) * t;
+    const noise = rng.range(-priceRange * 0.05, priceRange * 0.05);
+    const newPrice = Math.max(dailyCandle.low, Math.min(dailyCandle.high, targetPrice + noise));
+
+    allTicks.push(newPrice);
+    currentPrice = newPrice;
+  }
+
+  // Aggregate into 6 candles (proper OHLCV)
+  for (let i = 0; i < candlesPerDay; i++) {
+    const startIdx = i * ticksPerCandle;
+    const endIdx = startIdx + ticksPerCandle;
+    const periodTicks = allTicks.slice(startIdx, endIdx);
+
+    if (periodTicks.length > 0) {
+      candles.push({
+        tick: startIdx,
+        day: dailyCandle.day,
+        open: periodTicks[0],
+        high: Math.max(...periodTicks),
+        low: Math.min(...periodTicks),
+        close: periodTicks[periodTicks.length - 1],
+      });
+    }
+  }
+
+  return candles;
+}
+
+/**
  * Backfill all historical data for a profile
  * Returns: { news events for ticker, price history per asset (pre-aggregated) }
  */
@@ -546,14 +596,35 @@ export async function backfillProfile(profileId: string, seed: number): Promise<
 
     // Build pre-aggregated resolution arrays
     // today: Empty (current day has no history yet)
-    // d5: Last 5 days, 3 candles per day = 15 candles
+    // d5: Last 5 days, 20 trades per day = 100 trades max
     // m1: Last 30 days, 1 candle per day = 30 candles
     // y1: All available days (up to 365)
     // y5: Weekly candles for 5 years (only if launched 5+ years ago)
 
     const y1 = daily1yCandles; // All available days
     const m1 = daily1yCandles.slice(-Math.min(30, maxHistoryDays)); // Last 30 days or less
-    const d5 = daily1yCandles.slice(-Math.min(5, maxHistoryDays)); // Last 5 days or less
+
+    // Generate 6 candles per day for d5 (last 5 days = 30 candles total)
+    const d5Days = Math.min(5, maxHistoryDays);
+    const d5Candles: PriceCandle[] = [];
+    const last5DaysData = daily1yCandles.slice(-d5Days);
+
+    // Fix day-to-day continuity: ensure each day's open = previous day's close
+    for (let i = 0; i < last5DaysData.length; i++) {
+      const dayCandle = { ...last5DaysData[i] };
+
+      // If not the first day, adjust open to match previous close
+      if (i > 0 && d5Candles.length > 0) {
+        const prevDayLastCandle = d5Candles[d5Candles.length - 1];
+        dayCandle.open = prevDayLastCandle.close;
+      }
+
+      // Generate 6 intraday candles from this day's OHLC (5-minute periods)
+      const candles = generateIntradayCandles(dayCandle, seed + asset.symbol.charCodeAt(0));
+      d5Candles.push(...candles);
+    }
+
+    const d5 = d5Candles;
 
     // y5: Only generate if asset has 5 year history
     let y5: PriceCandle[] = [];
@@ -570,15 +641,88 @@ export async function backfillProfile(profileId: string, seed: number): Promise<
       }));
     }
 
+    // Generate yesterday data with realistic trade volume matching live trading density
+    const lastDayCandle = daily1yCandles[daily1yCandles.length - 1]; // Day -1 OHLC
+    const yesterday: PriceCandle[] = [];
+
+    if (lastDayCandle) {
+      // Use same trade probability formula as live trading (line 147 in rootStore.ts)
+      // tradeChance = 0.1 + (dynamicVolume * 0.8) = 10% to 90% per tick
+
+      // Calculate average volume for the asset (simplified, no vibe/momentum for historical)
+      const baseVolume = 0.3 + ((asset.volume || 0.5) * 0.4); // 0.3-0.7 range
+      const hypeMultiplier = 0.5 + ((asset.socialHype || 0.5) * 1.0); // 0.5-1.5x
+      const avgDynamicVolume = Math.min(1.0, baseVolume * hypeMultiplier); // Cap at 1.0
+
+      // Calculate expected trades based on probability
+      const ticksPerDay = 1800;
+      const avgTradeChance = 0.1 + (avgDynamicVolume * 0.8); // 10% to 90%
+      const expectedTrades = Math.floor(ticksPerDay * avgTradeChance); // 180-1620 trades
+
+      // Add some randomness ±20%
+      const numTrades = Math.floor(expectedTrades * (0.8 + Math.random() * 0.4));
+
+      // Create unique seed using full symbol hash
+      let symbolHash = 0;
+      for (let i = 0; i < asset.symbol.length; i++) {
+        symbolHash = ((symbolHash << 5) - symbolHash) + asset.symbol.charCodeAt(i);
+        symbolHash = symbolHash & symbolHash; // Convert to 32bit integer
+      }
+      const rng = initRNG(seed + symbolHash + lastDayCandle.day * 1000);
+
+      let currentPrice = lastDayCandle.open;
+      const priceRange = lastDayCandle.high - lastDayCandle.low;
+
+      // Randomize wave characteristics per asset
+      const waveFrequency = rng.range(1.5, 3.5); // Different cycle counts per asset
+      const waveAmplitude = rng.range(0.01, 0.03); // 1-3% wave influence (reduced from 10%)
+
+      for (let i = 0; i < numTrades; i++) {
+        const t = i / numTrades;
+
+        // Add realistic intraday volatility using multiple techniques:
+
+        // 1. Brownian motion with drift toward close (INCREASED randomness)
+        const drift = (lastDayCandle.close - lastDayCandle.open) / numTrades;
+        const volatility = priceRange * 0.08; // Increased from 0.05
+        const brownian = rng.range(-volatility, volatility);
+
+        // 2. Sine wave for intraday cycles (REDUCED influence, randomized per asset)
+        const sineWave = Math.sin(t * Math.PI * waveFrequency) * priceRange * waveAmplitude;
+
+        // 3. Occasional mini pumps/dumps (increased chance)
+        let spike = 0;
+        if (rng.chance(0.08)) { // Increased from 0.05
+          spike = rng.range(-priceRange * 0.2, priceRange * 0.2);
+        }
+
+        // Combine all movements (Brownian motion should dominate)
+        const targetPrice = currentPrice + drift + brownian + sineWave + spike;
+        const newPrice = Math.max(lastDayCandle.low, Math.min(lastDayCandle.high, targetPrice));
+
+        yesterday.push({
+          tick: i,
+          day: -1,
+          open: currentPrice,
+          high: Math.max(currentPrice, newPrice),
+          low: Math.min(currentPrice, newPrice),
+          close: newPrice,
+        });
+
+        currentPrice = newPrice;
+      }
+    }
+
     priceHistory[asset.id] = {
       today: [], // Empty at game start
+      yesterday, // Previous day's 6 candles for 1D context
       d5,
       m1,
       y1,
       y5,
     };
 
-    console.log(`[Backfill] Completed ${asset.symbol} - d5:${d5.length}, m1:${m1.length}, y1:${y1.length}, y5:${y5.length}`);
+    console.log(`[Backfill] Completed ${asset.symbol} - yesterday:${yesterday.length}, d5:${d5.length}, m1:${m1.length}, y1:${y1.length}, y5:${y5.length}`);
   }
 
   console.log(`[Backfill] Profile ${profileId} complete! Generated ${allNewsEvents.length} news articles for ticker`);

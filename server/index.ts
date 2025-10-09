@@ -7,6 +7,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import aiRoutes from './routes/ai';
+import simulationRoutes from './routes/simulation';
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
@@ -22,6 +23,9 @@ app.get('/health', (req, res) => {
 
 // AI routes
 app.use('/api/ai', aiRoutes);
+
+// Simulation routes
+app.use('/api/simulation', simulationRoutes);
 
 // Start server
 app.listen(PORT, () => {

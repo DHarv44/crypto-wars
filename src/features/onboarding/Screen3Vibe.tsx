@@ -26,14 +26,12 @@ const VIBES: Array<{ id: Vibe; name: string; description: string; projection: st
 ];
 
 export default function Screen3Vibe() {
-  const { vibe, setVibe, setScreen, handle, alias, title, archetype, toggle, completeOnboarding, initGame, seed, addArticles, saveGame } =
+  const { vibe, setVibe, setScreen, handle, alias, title, archetype, toggle, completeOnboarding, initGame, seed, addArticles, saveGame, simulateBackfill } =
     useStore();
   const [isBackfilling, setIsBackfilling] = useState(false);
 
   const handleStart = async () => {
     if (!vibe) return;
-
-    setIsBackfilling(true);
 
     // Apply stat modifiers based on selections
     const store = useStore.getState();
@@ -108,6 +106,7 @@ export default function Screen3Vibe() {
     await initGame();
 
     // Backfill historical chart data (use actual profile ID)
+    setIsBackfilling(true);
     try {
       console.log('[Screen3Vibe] Starting historical data backfill...');
       const { newsEvents, priceHistory } = await backfillProfile(profileId, seed);

@@ -15,6 +15,7 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
   const seriesRef = useRef<any>(null);
+  const yesterdaySeriesRef = useRef<any>(null);
 
   const [resolution, setResolution] = useState<ChartResolution>('1D');
   const [loading, setLoading] = useState(true);
@@ -85,8 +86,19 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
         wickDownColor: '#FF0000',
       });
 
+      // Add muted series for yesterday data (30% opacity)
+      const yesterdaySeries = chart.addSeries(CandlestickSeries, {
+        upColor: 'rgba(0, 255, 0, 0.3)',
+        downColor: 'rgba(255, 0, 0, 0.3)',
+        borderUpColor: 'rgba(0, 255, 0, 0.3)',
+        borderDownColor: 'rgba(255, 0, 0, 0.3)',
+        wickUpColor: 'rgba(0, 255, 0, 0.3)',
+        wickDownColor: 'rgba(255, 0, 0, 0.3)',
+      });
+
       chartRef.current = chart;
       seriesRef.current = candlestickSeries;
+      yesterdaySeriesRef.current = yesterdaySeries;
       setError(null);
 
       // Handle resize
@@ -127,70 +139,72 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
 
         console.log(`[AssetChart] Loading chart data: assetId=${assetId}, resolution=${resolution}`);
 
-        // Select correct resolution array from priceHistory
+        // For 1D, 5D, 1M: Load combined dataset (d5 + m1) for context
+        // For 1Y, 5Y: Load specific datasets (too much data to combine)
         let candles: any[] = [];
-        switch (resolution) {
-          case '1D':
-            candles = asset.priceHistory?.today || [];
-            break;
-          case '5D':
-            candles = asset.priceHistory?.d5 || [];
-            break;
-          case '1M':
-            candles = asset.priceHistory?.m1 || [];
-            break;
-          case '1Y':
-            candles = asset.priceHistory?.y1 || [];
-            break;
-          case '5Y':
-            candles = asset.priceHistory?.y5 || [];
-            break;
-          default:
-            candles = asset.priceHistory?.today || [];
+        let visibleRange: { from: number; to: number } | null = null;
+
+        const ticksPerDay = 1800;
+
+        if (resolution === '1D') {
+          // Load yesterday + today for 1D view (shows context from previous day)
+          const yesterday = asset.priceHistory?.yesterday || [];
+          const today = asset.priceHistory?.today || [];
+          candles = [...yesterday, ...today];
+          visibleRange = { from: 0, to: candles.length - 1 }; // Show all
+        } else if (resolution === '5D') {
+          // Load d5 (last 5 days, 6 candles/day = 30 candles)
+          candles = asset.priceHistory?.d5 || [];
+          visibleRange = { from: 0, to: candles.length - 1 };
+        } else if (resolution === '1M') {
+          // Load m1 (30 daily candles)
+          candles = asset.priceHistory?.m1 || [];
+          visibleRange = { from: 0, to: candles.length - 1 };
+        } else if (resolution === '1Y') {
+          candles = asset.priceHistory?.y1 || [];
+          visibleRange = { from: 0, to: candles.length - 1 };
+        } else if (resolution === '5Y') {
+          candles = asset.priceHistory?.y5 || [];
+          visibleRange = { from: 0, to: candles.length - 1 };
         }
 
-        console.log(`[AssetChart] Found ${candles.length} candles for ${resolution}`);
+        console.log(`[AssetChart] Found ${candles.length} candles, resolution=${resolution}`);
 
         // Convert to lightweight-charts format with proper time labels
-        const ticksPerDay = 1800;
         const labels: string[] = [];
         const chartData = candles.map((candle, index) => {
           let timeLabel: string;
 
-          switch (resolution) {
-            case '1D':
-              // Show minutes (0-30)
-              const minute = Math.floor((candle.tick % ticksPerDay) / (ticksPerDay / 30));
-              timeLabel = `${minute}`;
-              break;
-            case '5D':
-              // Show day number
-              const day5d = Math.abs(candle.day);
-              timeLabel = `D${day5d}`;
-              break;
-            case '1M':
-              // Show day number
-              const day1m = Math.abs(candle.day);
-              timeLabel = `D${day1m}`;
-              break;
-            case '1Y':
-              // Show day number
-              const day1y = Math.abs(candle.day);
-              timeLabel = `D${day1y}`;
-              break;
-            case '5Y':
-              // Show week number
-              const week = Math.abs(Math.floor(candle.day / 7));
-              timeLabel = `W${week}`;
-              break;
-            default:
-              timeLabel = `${index}`;
+          // Determine label format based on candle data (not resolution button)
+          if (candle.day === -1) {
+            // Yesterday candle (for 1D view context) - show time progression 0-30
+            const yesterdayCandles = candles.filter((c: any) => c.day === -1);
+            const yesterdayIndex = yesterdayCandles.findIndex((c: any) => c.tick === candle.tick);
+            const minute = Math.floor((yesterdayIndex / yesterdayCandles.length) * 30);
+            timeLabel = `YD:${minute}`;
+          } else if (candle.tick !== undefined && candle.tick < ticksPerDay) {
+            // Today's intraday candle - show minute
+            const minute = Math.floor((candle.tick % ticksPerDay) / (ticksPerDay / 30));
+            timeLabel = `${minute}`;
+          } else if (candle.day !== undefined && candle.day >= -5 && candle.day <= 0) {
+            // d5 candle - show day:period
+            const day5d = candle.day;
+            const tickInDay = candle.tick % ticksPerDay;
+            const periodInDay = Math.floor((tickInDay / ticksPerDay) * 6);
+            timeLabel = day5d === 0 ? `D0:P${periodInDay}` : `D${day5d}:P${periodInDay}`;
+          } else if (candle.day !== undefined && candle.day >= -365) {
+            // m1 or y1 candle - show day
+            timeLabel = `D${Math.abs(candle.day)}`;
+          } else {
+            // y5 candle - show week
+            const week = Math.abs(Math.floor((candle.day || 0) / 7));
+            timeLabel = `W${week}`;
           }
 
           labels.push(timeLabel);
 
           return {
-            time: index, // Use index for consistent spacing
+            time: index,
             open: candle.open,
             high: candle.high,
             low: candle.low,
@@ -211,11 +225,37 @@ export default function AssetChart({ assetId, assetName }: AssetChartProps) {
           });
         }
 
-        if (seriesRef.current && chartData.length > 0) {
-          seriesRef.current.setData(chartData);
-        } else if (seriesRef.current && chartData.length === 0) {
-          // Clear chart if no data
-          seriesRef.current.setData([]);
+        if (chartData.length > 0) {
+          // For 1D view, split data into yesterday (muted) and today (bright)
+          if (resolution === '1D' && candles.some((c: any) => c?.day === -1)) {
+            // Only split if we have yesterday data
+            const yesterdayData = chartData.filter((_, index) => candles[index]?.day === -1);
+            const todayData = chartData.filter((_, index) => candles[index]?.day !== -1);
+
+            if (yesterdaySeriesRef.current) {
+              yesterdaySeriesRef.current.setData(yesterdayData);
+            }
+            if (seriesRef.current) {
+              seriesRef.current.setData(todayData);
+            }
+          } else {
+            // Other resolutions or 1D without yesterday data - use main series only
+            if (seriesRef.current) {
+              seriesRef.current.setData(chartData);
+            }
+            if (yesterdaySeriesRef.current) {
+              yesterdaySeriesRef.current.setData([]); // Clear yesterday series
+            }
+          }
+
+          // Apply visible range zoom if specified
+          if (visibleRange && chartRef.current) {
+            chartRef.current.timeScale().setVisibleRange(visibleRange);
+          }
+        } else {
+          // Clear both series if no data
+          if (seriesRef.current) seriesRef.current.setData([]);
+          if (yesterdaySeriesRef.current) yesterdaySeriesRef.current.setData([]);
         }
 
         setLoading(false);

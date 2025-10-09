@@ -9,7 +9,7 @@ import { FileButton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
 export default function Header() {
-  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD, isProcessingDay } = useStore();
+  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD, isProcessingDay, tradingStarted, startTrading, marketVibe } = useStore();
 
   const [timeRemaining, setTimeRemaining] = useState('');
   const [canAdvance, setCanAdvance] = useState(false);
@@ -27,7 +27,7 @@ export default function Header() {
         const seconds = Math.floor((remaining % 60000) / 1000);
         setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
       } else {
-        setTimeRemaining('Ready!');
+        setTimeRemaining('');
       }
     }, 1000);
 
@@ -118,7 +118,7 @@ export default function Header() {
             </Stack>
           </Group>
 
-          {/* Day Counter */}
+          {/* Day Counter & Trading Controls */}
           <Group gap="xs">
             <Text size="sm" c="dimmed" ff="monospace">
               Day {day}
@@ -126,23 +126,45 @@ export default function Header() {
             <Text size="xs" c={marketOpen ? 'green' : 'red'} fw={700} tt="uppercase">
               {marketOpen ? 'OPEN' : 'CLOSED'}
             </Text>
-            <Text
-              size="lg"
-              fw={700}
-              c={canAdvance ? 'terminal.5' : 'dimmed'}
-              ff="monospace"
-              style={{ minWidth: 60, textAlign: 'center' }}
-            >
-              {timeRemaining}
-            </Text>
+            {timeRemaining && (
+              <Text
+                size="lg"
+                fw={700}
+                c="dimmed"
+                ff="monospace"
+                style={{ minWidth: 60, textAlign: 'center' }}
+              >
+                {timeRemaining}
+              </Text>
+            )}
+
+            {/* Show Start Trading button only when timer is at 30:00 */}
+            {!tradingStarted && timeRemaining === '30:00' && marketOpen && (
+              <Button
+                size="sm"
+                color="green"
+                variant="filled"
+                onClick={startTrading}
+                leftSection={<IconPlayerPlay size={16} />}
+              >
+                Start Trading
+              </Button>
+            )}
+
+            {/* Always show Next Day and Skip buttons */}
             <Button
               size="xs"
               color="terminal.5"
               onClick={handleAdvanceDay}
+              disabled={!canAdvance}
             >
               Next Day
             </Button>
-            <Button size="xs" variant="light" onClick={() => setSkipModalOpen(true)}>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={() => setSkipModalOpen(true)}
+            >
               Skip
             </Button>
           </Group>

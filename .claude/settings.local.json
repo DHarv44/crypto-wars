@@ -21,7 +21,11 @@
       "Bash(curl:*)",
       "Bash(taskkill:*)",
       "Bash(git log:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(dir:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []

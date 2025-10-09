@@ -11,8 +11,9 @@ export interface EngineSlice {
   // Real-time day tracking
   dayStartTimestamp: number; // Unix timestamp when current day started
   realTimeDayDuration: number; // Duration in ms (default 30 minutes)
-  marketOpen: boolean; // Whether markets are currently open for trading
-  tradingStarted: boolean; // Has player clicked "Start Trading" button?
+
+  // Simulation status - ONE SOURCE OF TRUTH
+  simulationStatus: 'backfill' | 'beginning-of-day' | 'trading' | 'end-of-day';
 
   // Market vibe (daily theme)
   marketVibe: MarketVibe;
@@ -40,8 +41,9 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
   // 30 minutes in milliseconds
   dayStartTimestamp: Date.now(),
   realTimeDayDuration: 30 * 60 * 1000,
-  marketOpen: true,
-  tradingStarted: false,
+
+  // Simulation status
+  simulationStatus: 'backfill',
 
   // Market vibe
   marketVibe: 'normie',
@@ -56,8 +58,6 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
       day: 1,
       tick: 0,
       dayStartTimestamp: Date.now(), // Will be reset when trading starts
-      marketOpen: true,
-      tradingStarted: false,
       marketVibe: initialVibe,
     });
   },
@@ -73,8 +73,6 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
       day: state.day + 1,
       tick: 0, // Reset tick counter for new day
       // DON'T set dayStartTimestamp here - it will be set when player clicks "Start Trading"
-      marketOpen: true,
-      tradingStarted: false, // Reset for new day
       marketVibe: newVibe,
     });
   },
@@ -86,47 +84,40 @@ export const createEngineSlice: StateCreator<EngineSlice> = (set, get) => ({
       day: state.day + numDays,
       tick: 0, // Reset tick counter for new day
       // DON'T set dayStartTimestamp here - it will be set when player clicks "Start Trading"
-      marketOpen: true,
-      tradingStarted: false, // Reset for new day
       marketVibe: newVibe,
     });
   },
 
   canAdvanceDay: () => {
     const state = get();
-    // Can't advance until trading has started
-    if (!state.tradingStarted) return false;
-
-    const elapsed = Date.now() - state.dayStartTimestamp;
-    return elapsed >= state.realTimeDayDuration;
+    // Always allow manual day advancement (Next Day button always enabled)
+    return true;
   },
 
   getTimeUntilNextDay: () => {
     const state = get();
-    // If trading hasn't started, return full duration (timer shows 30:00)
-    if (!state.tradingStarted) return state.realTimeDayDuration;
+    // If not trading, return full duration (timer shows 30:00)
+    if (state.simulationStatus !== 'trading') return state.realTimeDayDuration;
 
     const elapsed = Date.now() - state.dayStartTimestamp;
     const remaining = state.realTimeDayDuration - elapsed;
+
+    // If timer expired, set status to end-of-day
+    if (remaining <= 0) {
+      set({ simulationStatus: 'end-of-day' });
+    }
+
     return Math.max(0, remaining);
   },
 
   isMarketOpen: () => {
     const state = get();
-    const timeExpired = state.canAdvanceDay();
-
-    // Close market when timer expires
-    if (timeExpired && state.marketOpen) {
-      set({ marketOpen: false });
-      return false;
-    }
-
-    return state.marketOpen && !timeExpired;
+    return state.simulationStatus === 'trading';
   },
 
   startTrading: () => {
     set({
-      tradingStarted: true,
+      simulationStatus: 'trading',
       dayStartTimestamp: Date.now(), // Start the timer NOW
     });
   },

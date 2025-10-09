@@ -9,7 +9,7 @@ import { FileButton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
 export default function Header() {
-  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD, isProcessingDay, tradingStarted, startTrading, marketVibe } = useStore();
+  const { day, canAdvanceDay, getTimeUntilNextDay, advanceDay, marketOpen, profile, cashUSD, netWorthUSD, isProcessingDay, simulationStatus, startTrading, marketVibe } = useStore();
 
   const [timeRemaining, setTimeRemaining] = useState('');
   const [canAdvance, setCanAdvance] = useState(false);
@@ -123,8 +123,8 @@ export default function Header() {
             <Text size="sm" c="dimmed" ff="monospace">
               Day {day}
             </Text>
-            <Text size="xs" c={marketOpen ? 'green' : 'red'} fw={700} tt="uppercase">
-              {marketOpen ? 'OPEN' : 'CLOSED'}
+            <Text size="xs" c={simulationStatus === 'trading' ? 'green' : 'yellow'} fw={700} tt="uppercase">
+              {simulationStatus === 'trading' ? 'TRADING' : simulationStatus === 'beginning-of-day' ? 'READY' : simulationStatus === 'end-of-day' ? 'CLOSED' : 'LOADING'}
             </Text>
             {timeRemaining && (
               <Text
@@ -138,8 +138,8 @@ export default function Header() {
               </Text>
             )}
 
-            {/* Show Start Trading button only when timer is at 30:00 */}
-            {!tradingStarted && timeRemaining === '30:00' && marketOpen && (
+            {/* Show Start Trading button only at beginning-of-day */}
+            {simulationStatus === 'beginning-of-day' && (
               <Button
                 size="sm"
                 color="green"

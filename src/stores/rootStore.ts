@@ -95,20 +95,15 @@ export const useStore = create<RootStore>((set, get, store) => ({
     const day = state.day || 1;
     const assets = state.assets;
 
-    // Don't process ticks until trading has started
-    if (!state.tradingStarted) {
+    // Only process ticks when status is 'trading'
+    if (state.simulationStatus !== 'trading') {
       return;
     }
 
-    // Check if market should close (timer expired)
-    const timeExpired = state.canAdvanceDay();
-    if (timeExpired && state.marketOpen) {
-      set({ marketOpen: false });
-      return;
-    }
-
-    // Stop processing if market is closed
-    if (!state.marketOpen) {
+    // Check if timer expired
+    const elapsed = Date.now() - state.dayStartTimestamp;
+    if (elapsed >= state.realTimeDayDuration) {
+      set({ simulationStatus: 'end-of-day' });
       return;
     }
 
@@ -642,14 +637,15 @@ export const useStore = create<RootStore>((set, get, store) => ({
     // Save after tick processing and WAIT for it to complete
     await state.saveGame();
 
-    // Ensure minimum loading time has elapsed (only during normal gameplay)
-    if (!state.isSimulating) {
-      const elapsedTime = Date.now() - startTime;
-      if (elapsedTime < minLoadingTime) {
-        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
-      }
-      set({ isProcessingDay: false });
+    // Set status to beginning-of-day for next day
+    set({ simulationStatus: 'beginning-of-day' });
+
+    // Ensure minimum loading time has elapsed
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < minLoadingTime) {
+      await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
     }
+    set({ isProcessingDay: false });
   },
 
   // Load game state from IndexedDB

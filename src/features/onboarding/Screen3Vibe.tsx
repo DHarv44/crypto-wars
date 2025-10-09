@@ -137,6 +137,10 @@ export default function Screen3Vibe() {
 
       // Save game again to persist the news articles and price history
       console.log('[Screen3Vibe] Saving game with news articles and price history...');
+
+      // Set status to beginning-of-day after backfill completes
+      store.set({ simulationStatus: 'beginning-of-day' });
+      store.markDirty();
       await saveGame();
       console.log('[Screen3Vibe] Game saved with news articles and price history!');
     } catch (error) {

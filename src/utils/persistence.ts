@@ -14,9 +14,15 @@ interface GameState {
   devMode: boolean;
   dayStartTimestamp: number;
   realTimeDayDuration: number;
-  tradingStarted: boolean;
   marketVibe: string;
   vibeTargetAssets?: string[];
+
+  // Simulation status - ONE SOURCE OF TRUTH for game state
+  // 'backfill' = generating historical data, no ticks
+  // 'beginning-of-day' = day started, waiting for player to start trading
+  // 'trading' = player clicked start, ticks running
+  // 'end-of-day' = day ended, show summary
+  simulationStatus: 'backfill' | 'beginning-of-day' | 'trading' | 'end-of-day';
 
   // Player
   cashUSD: number;
@@ -119,6 +125,9 @@ export async function saveGame(state: Partial<GameState>): Promise<void> {
       devMode: state.devMode ?? false,
       dayStartTimestamp: state.dayStartTimestamp ?? Date.now(),
       realTimeDayDuration: state.realTimeDayDuration ?? (30 * 60 * 1000),
+      marketVibe: state.marketVibe ?? 'normie',
+      vibeTargetAssets: state.vibeTargetAssets,
+      simulationStatus: state.simulationStatus ?? 'backfill',
 
       // Player
       cashUSD: state.cashUSD ?? 10000,

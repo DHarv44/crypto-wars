@@ -21,9 +21,11 @@ export default function BuySellModal() {
     getTimeUntilNextDay,
     realTimeDayDuration,
     saveGame,
-    marketOpen,
+    simulationStatus,
     createLimitOrder,
   } = useStore();
+
+  const marketOpen = simulationStatus === 'trading';
 
   const [amount, setAmount] = useState<number | string>(0);
   const [isLimitOrder, setIsLimitOrder] = useState(false);

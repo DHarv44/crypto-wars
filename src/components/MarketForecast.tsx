@@ -45,10 +45,10 @@ const VIBE_INFO: Record<
 };
 
 export default function MarketForecast() {
-  const { marketVibe, tradingStarted } = useStore();
+  const { marketVibe, simulationStatus } = useStore();
 
-  // Only show when trading hasn't started yet
-  if (tradingStarted) return null;
+  // Only show when at beginning-of-day
+  if (simulationStatus !== 'beginning-of-day') return null;
 
   const info = VIBE_INFO[marketVibe];
 
